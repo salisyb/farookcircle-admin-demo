@@ -12,7 +12,7 @@ on:
 jobs:
   build:
 
-    runs-on: [self-hosted, backend-server]
+    runs-on: [self-hosted, admin-dashboard]
 
     strategy:
       matrix:
@@ -28,4 +28,4 @@ jobs:
         cache: 'npm'
     - run: yarn install
     - run: yarn build
-    - run: pm2 restart backend-server
+    - run: pm2 restart admin-dashboard
