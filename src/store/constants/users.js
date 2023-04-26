@@ -1,0 +1,12 @@
+export const USER_LOADING = '@USERS_USER_LOADING';
+export const USER_LOADED = '@USERS_USER_LOADED';
+
+export const GET_USERS = '@USERS_GET_USERS';
+export const GET_USER = '@USERS_GET_USER';
+export const REMOVE_USER = '@USERS_DELETE_USER';
+export const UPDATE_USER = '@USERS_UPDATE_USER';
+export const CREATE_USER = '@USERS_CREATE_USER';
+
+
+export const GET_USERS_WALLET = '@USERS_GET_USERS_WALLET';
+export const GET_TRANSACTIONS = '@USERS_GET_TRANSACTIONS';
