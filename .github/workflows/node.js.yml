@@ -27,5 +27,6 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: yarn install
+    - run: export NODE_OPTIONS=--max-old-space-size=4096
     - run: yarn build
     - run: pm2 restart admin-dashboard
