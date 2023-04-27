@@ -33,12 +33,13 @@ export default function ({ userId, closeModal }) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [time, setTime] = React.useState('');
   const [from, setFrom] = React.useState('');
+  const [pin, setPin] = React.useState('');
 
   const handleUserWallet = async () => {
     setShow(true);
     setLoading(true);
 
-    const response = await agentFundUserWallet({ agent: userId, amount, from, time });
+    const response = await agentFundUserWallet({ agent: userId, amount, from, time, pin });
 
     // agent, from, amount, time,
 
@@ -69,13 +70,13 @@ export default function ({ userId, closeModal }) {
   }, [userId]);
 
   React.useEffect(() => {
-    if (Number(amount) > 5 && from && time) {
+    if (Number(amount) > 5 && from && time && pin) {
       setValid(true);
       return;
     }
 
     setValid(false);
-  }, [amount, from, time]);
+  }, [amount, from, time, pin]);
 
   return (
     <>
@@ -155,6 +156,13 @@ export default function ({ userId, closeModal }) {
                     label="Time Reference"
                     value={time}
                     onChange={(event) => setTime(event.target.value)}
+                  />
+                   <TextField
+                    sx={{ my: '20px' }}
+                    id="outlined-required"
+                    label="Your PIN"
+                    value={pin}
+                    onChange={(event) => setPin(event.target.value)}
                   />
                 </Stack>
               )}
