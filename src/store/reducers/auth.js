@@ -2,13 +2,20 @@
 /* eslint-disable default-param-last */
 import * as auth from '../constants/auth';
 
-const userSession = localStorage.getItem('user_session') ? JSON.parse(localStorage.getItem('user_session')) : {};
+// const userSession = localStorage.getItem('user_session') ? JSON.parse(localStorage.getItem('user_session')) : {};
+
+// const initialState = {
+//   token: userSession.token || null,
+//   isAuthenticated: userSession.token ? true : false,
+//   isLoading: false,
+//   user: userSession.user || null,
+// };
 
 const initialState = {
-  token: userSession.token || null,
-  isAuthenticated: userSession.token ? true : false,
+  token: null,
+  isAuthenticated: false,
   isLoading: false,
-  user: userSession.user || null,
+  user: null,
 };
 
 export default function (state = initialState, action) {
