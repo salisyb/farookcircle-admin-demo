@@ -138,7 +138,7 @@ export default function ({ userId, closeModal }) {
                     label="Amount"
                     value={amount}
                     onChange={(event) => {
-                      if (Number(event.target.value) || event.target.value === '') {
+                      if (Number(event.target.value) || event.target.value === '' || event.target.value === '-') {
                         setAmount(event.target.value);
                       }
                     }}
