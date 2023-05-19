@@ -70,7 +70,7 @@ export default function ({ userId, closeModal }) {
   }, [userId]);
 
   React.useEffect(() => {
-    if (Number(amount) > 5 && from && time && pin) {
+    if (amount !== "" && from && time && pin) {
       setValid(true);
       return;
     }
