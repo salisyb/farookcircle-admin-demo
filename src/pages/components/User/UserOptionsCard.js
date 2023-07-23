@@ -12,7 +12,6 @@ import {
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { fundUsersWallet, agentFundUserWallet, validateUser } from '../../../api/users.api';
-import { getUsersWallet } from '../../../store/actions/users';
 
 export default function ({ userId, closeModal }) {
   const dispatch = useDispatch();
@@ -32,14 +31,13 @@ export default function ({ userId, closeModal }) {
   const [balance, setBalance] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
   const [time, setTime] = React.useState('');
-  const [from, setFrom] = React.useState('');
   const [pin, setPin] = React.useState('');
 
   const handleUserWallet = async () => {
     setShow(true);
     setLoading(true);
 
-    const response = await agentFundUserWallet({ agent: userId, amount, from, time, pin });
+    const response = await agentFundUserWallet({ agent: userId, amount, time, pin });
 
     // agent, from, amount, time,
 
@@ -47,7 +45,7 @@ export default function ({ userId, closeModal }) {
       setLoading(false);
       setStatus(true);
       setStatusMessage(response.data.message);
-      dispatch(getUsersWallet());
+
       return;
     }
 
@@ -70,13 +68,13 @@ export default function ({ userId, closeModal }) {
   }, [userId]);
 
   React.useEffect(() => {
-    if (amount !== "" && from && time && pin) {
+    if (amount !== '' && time && pin) {
       setValid(true);
       return;
     }
 
     setValid(false);
-  }, [amount, from, time, pin]);
+  }, [amount, time, pin]);
 
   return (
     <>
@@ -146,18 +144,11 @@ export default function ({ userId, closeModal }) {
                   <TextField
                     sx={{ my: '20px' }}
                     id="outlined-required"
-                    label="From Account"
-                    value={from}
-                    onChange={(event) => setFrom(event.target.value)}
-                  />
-                  <TextField
-                    sx={{ my: '20px' }}
-                    id="outlined-required"
-                    label="Time Reference"
+                    label="Reference"
                     value={time}
                     onChange={(event) => setTime(event.target.value)}
                   />
-                   <TextField
+                  <TextField
                     sx={{ my: '20px' }}
                     id="outlined-required"
                     label="Your PIN"
@@ -202,19 +193,6 @@ export default function ({ userId, closeModal }) {
                     >
                       Fund Agent Wallet
                     </Button>
-
-                    {/* <Button
-                variant={'contained'}
-                onClick={() => {
-                  setFundUser(true);
-                  setType('Deduct');
-                }}
-                disabled={fundUser && !valid}
-                sx={{ ml: '5px' }}
-                color="error"
-              >
-                Deduct Agent Wallet
-              </Button> */}
                   </>
                 )}
               </Box>
