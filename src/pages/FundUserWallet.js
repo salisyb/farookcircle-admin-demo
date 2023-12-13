@@ -74,9 +74,7 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    console.log('filter');
-    console.log(array);
-    console.log(query)
+   
     return filter(array, (_user) => _user.username.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
@@ -145,7 +143,7 @@ export default function FundUserWallet() {
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - users.length) : 0;
 
   const filteredUsers = applySortFilter(users, getComparator(order, orderBy), filterName);
-  console.log(filteredUsers);
+  
 
   const isUserNotFound = filteredUsers.length === 0;
 
@@ -157,7 +155,7 @@ export default function FundUserWallet() {
 
   const handleClickUser = (username) => {
     setUserClickId(username);
-    console.log(username)
+   
     toggleModal();
   };
 
@@ -167,7 +165,7 @@ export default function FundUserWallet() {
   }, []);
 
   const handleEditUser = (id) => {
-    console.log(id);
+  
   };
 
   const handleRemoveUser = (id) => {

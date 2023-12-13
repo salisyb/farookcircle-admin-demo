@@ -70,7 +70,7 @@ export default function UpdateDiscount() {
 
     const payload = { processor: { discount: { airtime: discount } } };
 
-    console.log(discount);
+   
     const response = await updateCurrentServiceDiscount(payload);
     if(response.ok) {
       setModalOpen(!isOpen);

@@ -199,7 +199,7 @@ export default function User() {
   };
 
   const handleEditUser = (id) => {
-    console.log(id);
+
   };
 
   const handleRemoveUser = (id) => {

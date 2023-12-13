@@ -25,7 +25,7 @@ export default function LoginForm() {
 
   const [showPassword, setShowPassword] = useState(false);
   const { isLoading, isAuthenticated, user } = useSelector((state) => state.auth);
-  console.log(user);
+
   const LoginSchema = Yup.object().shape({
     username: Yup.string().required('Username is required'),
     password: Yup.string().required('Password is required'),

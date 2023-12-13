@@ -12,7 +12,7 @@ export const loginUser = (data) => async (dispatch) => {
     return dispatch({ type: actionType.LOGIN_SUCCEED, payload: { token, user: { username } } });
   }
 
-  console.log(response.data);
+
   // eslint-disable-next-line no-unused-expressions
   response.data ? toast.error('Invalid username or password') : toast.error(response.problem);
   dispatch({ type: actionType.AUTH_ERROR });
