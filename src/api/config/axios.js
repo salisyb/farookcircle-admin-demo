@@ -9,7 +9,7 @@ import { create } from 'apisauce';
 // });
 
 export const api = create({
-  baseURL: 'https://retail-manager-c25d37b64f70.herokuapp.com',
+  baseURL: 'https://www.farookcircle.com',
 });
 
 export const apiExternal = create({

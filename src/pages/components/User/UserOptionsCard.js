@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
+  Checkbox,
   CircularProgress,
   FormControl,
   FormControlLabel,
@@ -32,12 +33,14 @@ export default function ({ userId, closeModal }) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [time, setTime] = React.useState('');
   const [pin, setPin] = React.useState('');
+  const [resolution, setResolution] = useState(false);
+  const [ticketRef, setTicketRef] = useState('');
 
   const handleUserWallet = async () => {
     setShow(true);
     setLoading(true);
 
-    const response = await agentFundUserWallet({ agent: userId, amount, time, pin });
+    const response = await agentFundUserWallet({ agent: userId, amount, time, pin, resolution, ticket_ref: ticketRef });
 
     // agent, from, amount, time,
 
@@ -148,6 +151,21 @@ export default function ({ userId, closeModal }) {
                     value={time}
                     onChange={(event) => setTime(event.target.value)}
                   />
+                  <FormControlLabel
+                    required
+                    control={<Checkbox />}
+                    label="Is Resolution"
+                    onChange={(event) => setResolution(event.target.checked)}
+                  />
+                  {resolution && (
+                    <TextField
+                      sx={{ my: '20px' }}
+                      id="outlined-required"
+                      label="Ticket Reference"
+                      value={ticketRef}
+                      onChange={(event) => setTicketRef(event.target.value)}
+                    />
+                  )}
                   <TextField
                     sx={{ my: '20px' }}
                     id="outlined-required"
