@@ -183,10 +183,15 @@ export default function User() {
 
   React.useEffect(() => {
     dispatch(getTransactionsAgent({ date: new Date().toISOString().split('T')[0] }));
+    dispatch(getUsers());
   }, []);
 
+  React.useEffect(() => {
+    setFilterTransaction(transactions);
+  }, [transactions]);
+
   const handleFilterTransactions = async (queryFilter) => {
-    setIsLoading(true)
+    setIsLoading(true);
     const request = await getListOfTransactins(queryFilter);
     if (request.ok) {
       setFilterTransaction(request.data);
@@ -196,14 +201,6 @@ export default function User() {
 
     setFilterTransaction([]);
     setIsLoading(false);
-  };
-
-  const handleEditUser = (id) => {
-
-  };
-
-  const handleRemoveUser = (id) => {
-    dispatch(removeUser(id));
   };
 
   const handleApplyFilter = (filter) => {
@@ -242,14 +239,24 @@ export default function User() {
             <Typography variant="h4" gutterBottom>
               Staff
             </Typography>
-            <Button
-              variant="contained"
-              component={RouterLink}
-              to="/dashboard/funding"
-              startIcon={<Iconify icon="eva:message-circle-outline" />}
-            >
-              Fund User Wallet
-            </Button>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Button
+                variant="contained"
+                component={RouterLink}
+                to="/dashboard/ticket"
+                startIcon={<Iconify icon="eva:archive-outline" />}
+              >
+                Tickets
+              </Button>
+              <Button
+                variant="contained"
+                component={RouterLink}
+                to="/dashboard/funding"
+                startIcon={<Iconify icon="eva:people-outline" />}
+              >
+                Users
+              </Button>
+            </Stack>
           </Stack>
           <Card>
             <UserListToolbar

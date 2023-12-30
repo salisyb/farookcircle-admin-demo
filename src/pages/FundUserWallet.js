@@ -45,7 +45,6 @@ const TABLE_HEAD = [
   { id: 'first_name', label: 'First name', alignRight: false },
   { id: 'last_name', label: 'Last Name', alignRight: false },
   { id: 'date_joined', label: 'Date Join', alignRight: false },
-
 ];
 
 // ----------------------------------------------------------------------
@@ -74,7 +73,6 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-   
     return filter(array, (_user) => _user.username.toLowerCase().indexOf(query.toLowerCase()) !== -1);
   }
   return stabilizedThis.map((el) => el[0]);
@@ -143,7 +141,6 @@ export default function FundUserWallet() {
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - users.length) : 0;
 
   const filteredUsers = applySortFilter(users, getComparator(order, orderBy), filterName);
-  
 
   const isUserNotFound = filteredUsers.length === 0;
 
@@ -155,18 +152,15 @@ export default function FundUserWallet() {
 
   const handleClickUser = (username) => {
     setUserClickId(username);
-   
+
     toggleModal();
   };
 
   React.useEffect(() => {
     dispatch(getUsers());
-    
-  }, []);
+  }, [dispatch]);
 
-  const handleEditUser = (id) => {
-  
-  };
+  const handleEditUser = (id) => {};
 
   const handleRemoveUser = (id) => {
     dispatch(removeUser(id));
@@ -186,14 +180,18 @@ export default function FundUserWallet() {
             variant="contained"
             component={RouterLink}
             to="/dashboard/app"
-            startIcon={<Iconify icon="eva:message-circle-outline" />}
+            startIcon={<Iconify icon="eva:browser-outline" />}
           >
             Dashboard
           </Button>
         </Stack>
 
         <Card>
-          <UserListToolbarFilter numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
+          <UserListToolbarFilter
+            numSelected={selected.length}
+            filterName={filterName}
+            onFilterName={handleFilterByName}
+          />
 
           <Scrollbar>
             <TableContainer sx={{ minWidth: 800 }}>

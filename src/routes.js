@@ -24,6 +24,8 @@ import UpdateService from './pages/UpdateServices';
 import UpdateDiscount from './pages/UpdateDiscount';
 import Transaction from './pages/Transaction';
 import FundUserWallet from './pages/FundUserWallet';
+import TicketList from './pages/TicketList';
+import TicketMessages from './pages/TicketMessage';
 
 // ----------------------------------------------------------------------
 
@@ -38,6 +40,9 @@ export default function Router() {
         // { path: 'app', element: isAuthenticated ? <DashboardApp /> : <Navigate to="/login" /> },
         { path: 'app', element: isAuthenticated ? <User /> : <Navigate to="/login" /> },
         { path: 'funding', element: isAuthenticated ? <FundUserWallet /> : <Navigate to="/login" /> },
+        { path: 'ticket', element: isAuthenticated ? <TicketList /> : <Navigate to="/login" /> },
+        { path: 'ticket/message', element: isAuthenticated ? <TicketMessages /> : <Navigate to="/login" /> },
+
         // { path: 'user/add', element: isAuthenticated ? <Add /> : <Navigate to="/login" /> },
         // { path: 'services', element: isAuthenticated ? <Products /> : <Navigate to="/login" /> },
         // { path: 'services/:category', element: isAuthenticated ? <UpdateService /> : <Navigate to="/login" /> },

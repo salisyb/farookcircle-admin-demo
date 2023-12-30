@@ -8,3 +8,9 @@ export const api = create({
 export const apiExternal = create({
   baseURL: '',
 });
+
+
+
+export const datashopAPI = create({
+  baseURL: 'http://127.0.0.1:8000'
+})
