@@ -54,7 +54,7 @@ export const closeTicket = async (id, payload) => {
       Authorization: `Bearer ${token}`,
     },
   };
-  return datashopAPI.put(`/system/admin/ticket/${id}`, payload, config);
+  return datashopAPI.put(`/system/admin/ticket/${id}/`, payload, config);
 };
 
 export const getTicketMessage = async (ticketId) => {
