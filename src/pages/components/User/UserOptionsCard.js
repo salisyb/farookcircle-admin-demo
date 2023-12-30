@@ -382,9 +382,9 @@ export default function ({ userId, closeModal }) {
                       >
                         Create Ticket for user
                       </Button>
-                      <Button variant={'contained'} onClick={handleViewUserTicket}>
+                      {/* <Button variant={'contained'} onClick={handleViewUserTicket}>
                         View User Ticket
-                      </Button>
+                      </Button> */}
                     </Stack>
                   )}
                 </Box>

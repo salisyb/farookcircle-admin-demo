@@ -33,6 +33,11 @@ export default function (state = initialState, action) {
         isLoading: false,
         isAuthenticated: true,
       };
+      case auth.USER_UPDATE:
+        return {
+          ...state,
+          user: action.payload,
+        }
     case auth.USER_LOGOUT:
       return {};
     case auth.AUTH_ERROR:

@@ -17,6 +17,7 @@ import {
   Box,
   FormControl,
   CircularProgress,
+  IconButton,
 } from '@mui/material';
 
 import moment from 'moment-timezone';
@@ -106,7 +107,7 @@ export default function TicketMessages() {
 
     formData.append('ticket', selectedTicket.id);
     formData.append('message', message);
-    formData.append('sender', user.username);
+    formData.append('sender', user?.alias);
 
     if (attachment) {
       formData.append('attachment', attachment);
@@ -142,7 +143,7 @@ export default function TicketMessages() {
 
   const handleCloseTicket = async () => {
     setCloseLoading(true);
-    const request = await closeTicket(selectedTicket?.id, {close_by: user?.username});
+    const request = await closeTicket(selectedTicket?.id, { close_by: user?.username });
     if (request.ok) {
       toast.success('Ticket Closed Successfully');
       setCloseLoading(false);
@@ -152,6 +153,11 @@ export default function TicketMessages() {
 
     setCloseLoading(false);
     toast.error(request.data?.message ? request.data?.message : 'Unable to close the ticket please try again');
+  };
+
+  const handleCopyClick = () => {
+    navigator.clipboard.writeText(selectedTicket?.reference);
+    toast.success('Copied to clipboard');
   };
 
   return (
@@ -223,6 +229,7 @@ export default function TicketMessages() {
                   Ticket # {ticketId}
                 </Typography>
               </Stack>
+
               <Stack direction="row" spacing={1} alignItems="center">
                 <Button
                   variant="contained"
@@ -232,6 +239,17 @@ export default function TicketMessages() {
                 >
                   Dashboard
                 </Button>
+              </Stack>
+            </Stack>
+            <Stack mt={'5px'}>
+              <Typography>Ticket reference</Typography>
+              <Stack direction={'row'} alignItems={'center'}>
+                <Typography variant="body2" gutterBottom>
+                  {selectedTicket?.reference}
+                </Typography>
+                <IconButton onClick={handleCopyClick}>
+                  <Iconify icon={'eva:copy-outline'} width={20} height={20} />
+                </IconButton>
               </Stack>
             </Stack>
             <Stack my={2} direction={'row'} justifyContent={'space-between'} spacing={1}>

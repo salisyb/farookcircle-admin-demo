@@ -23,6 +23,8 @@ import {
   CircularProgress,
 } from '@mui/material';
 
+import { USER_UPDATE } from '../store/constants/auth';
+import { getUserInfo } from '../api/auth.api';
 import { getListOfTransactins } from '../api/users.api';
 
 // components
@@ -184,6 +186,7 @@ export default function User() {
   React.useEffect(() => {
     dispatch(getTransactionsAgent({ date: new Date().toISOString().split('T')[0] }));
     dispatch(getUsers());
+    handleGetUserData();
   }, []);
 
   React.useEffect(() => {
@@ -209,6 +212,15 @@ export default function User() {
       return;
     }
     handleFilterTransactions(filter);
+  };
+
+  const handleGetUserData = async () => {
+    const request = await getUserInfo();
+
+    if (request.ok) {
+      console.log(request.data)
+      dispatch({ type: USER_UPDATE, payload: request.data });
+    }
   };
 
   return (

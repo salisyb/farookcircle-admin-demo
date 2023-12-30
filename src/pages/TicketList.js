@@ -2,7 +2,7 @@
 /* eslint-disable camelcase */
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { filter } from 'lodash';
+import _, { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // material
@@ -79,7 +79,7 @@ function applySortFilter(array, comparator, query) {
     return a[1] - b[1];
   });
   if (query) {
-    return filter(array, (_ticket) => _ticket.id.toString().includes(query));
+    return filter(array, (_ticket) => _ticket.id.toString().includes(query) || _ticket.reference.includes(query));
   }
   return stabilizedThis.map((el) => el[0]);
 }
@@ -265,6 +265,8 @@ export default function TicketList() {
       formData.append('attachment', selectedFile);
     }
 
+    setCreateTicketLoading(true);
+
     const request = await createTicket(formData);
     if (request.ok) {
       toast.success('You have successfully create new ticket');
@@ -446,8 +448,8 @@ export default function TicketList() {
                                     <Iconify icon="eva:clock-outline" width={18} height={18} />
                                     <Typography>{moment(created_at).calendar()}</Typography>
                                   </Stack>
-                                  <Typography color={'salmon'}>
-                                    {is_closed ? 'Ticket Closed' : 'Open Ticket'}
+                                  <Typography color={is_closed ? 'red' : 'green'}>
+                                    {is_closed ? 'Closed' : 'Open'}
                                   </Typography>
                                 </Stack>
                               </Stack>
