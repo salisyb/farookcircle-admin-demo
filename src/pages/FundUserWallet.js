@@ -208,16 +208,12 @@ export default function FundUserWallet() {
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                     const { id, username, first_name, last_name, date_joined } = row;
-                    const isItemSelected = selected.indexOf(id) !== -1;
 
                     return (
                       <TableRow
                         hover
                         key={username}
                         tabIndex={-1}
-                        // role="checkbox"
-                        // selected={isItemSelected}
-                        // aria-checked={isItemSelected}
                         onClick={() => handleClickUser(username)}
                         sx={{ cursor: 'pointer' }}
                       >
@@ -235,12 +231,6 @@ export default function FundUserWallet() {
                         <TableCell align="left">{first_name}</TableCell>
                         <TableCell align="left">{last_name}</TableCell>
                         <TableCell align="left">{new Date(date_joined).toLocaleDateString()}</TableCell>
-                        {/* <TableCell align="left">
-                          <Label variant="ghost" color={'success'}>
-                            {sentenceCase('active')}
-                          </Label>
-                        </TableCell> */}
-
                         <TableCell align="right">
                           {/* <UserMoreMenu
                             onOption={(option) => (option === 'remove' ? handleRemoveUser(id) : handleEditUser(id))}

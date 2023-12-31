@@ -8,12 +8,12 @@ export default function TicketPopoverModal({ onApplyFilter }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
 
   const [formData, setFormData] = React.useState({
-    user: '',
+    username: '',
     attended_by: '',
     title: '',
     created_by: '',
-    created_at: new Date(),
-    status: '',
+    created_at: '',
+    is_closed: false,
   });
 
   const handleSetFormData = (event) => {
@@ -37,14 +37,6 @@ export default function TicketPopoverModal({ onApplyFilter }) {
     });
 
     onApplyFilter(payload);
-    // setFormData({
-    //   agent: '',
-    //   amount: '',
-    //   date: '',
-    //   funded_by: '',
-    //   status: '',
-    //   transaction_ref: '',
-    // });
     handleClose();
   };
 
@@ -68,7 +60,7 @@ export default function TicketPopoverModal({ onApplyFilter }) {
       >
         <Stack sx={{ padding: '10px', width: '400px' }} spacing={'10px'}>
           <Stack direction={'row'}>
-            <Typography sx={{ p: 2 }}>Filter Ticket</Typography>
+            <Typography sx={{ p: 2 }}>Filter Tickets</Typography>
           </Stack>
 
           <TextField
@@ -76,17 +68,17 @@ export default function TicketPopoverModal({ onApplyFilter }) {
             name="title"
             value={formData.title}
             onChange={handleSetFormData}
-            label="Ticket Subject"
+            label="Subject"
             type="text"
             size="small"
           />
 
           <TextField
             id="outlined-text-input"
-            name="user"
-            value={formData.user}
+            name="username"
+            value={formData.username}
             onChange={handleSetFormData}
-            label="User Username"
+            label="User"
             type="text"
             size="small"
           />
@@ -95,7 +87,7 @@ export default function TicketPopoverModal({ onApplyFilter }) {
             name="attended_by"
             value={formData.attended_by}
             onChange={handleSetFormData}
-            label="Assign to"
+            label="Assigned to"
             type="text"
             size="small"
           />
@@ -112,15 +104,15 @@ export default function TicketPopoverModal({ onApplyFilter }) {
 
           <TextField
             id="outlined-select-status"
-            name="status"
-            value={formData.status}
+            name="is_closed"
+            value={formData.is_closed}
             onChange={handleSetFormData}
             select
-            label="Ticket Status"
-            defaultValue="completed"
+            label="Status"
+            defaultValue="open"
           >
-            <MenuItem value={'close'}>Close Ticket</MenuItem>
-            <MenuItem value={'active'}>Active Ticket</MenuItem>
+            <MenuItem value>Closed</MenuItem>
+            <MenuItem value={false}>Open</MenuItem>
           </TextField>
 
           <Button onClick={applyFilter} variant="contained">

@@ -217,11 +217,22 @@ export default function TicketList() {
   };
 
   const handleApplyFilter = (filter) => {
+    console.log(filter);
     if (Object.keys(filter).length < 1) {
       setFilterTickets(tickets);
       return;
     }
-    handleFilterTickets(filter);
+    const filteredList = tickets.filter((ticket) => {
+      // eslint-disable-next-line no-restricted-syntax
+      for (const key in filter) {
+        if (ticket[key] !== filter[key]) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    setFilterTickets(filteredList);
   };
 
   const handleRouteToTicketMessage = (ticketId) => {

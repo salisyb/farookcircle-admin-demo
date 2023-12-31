@@ -59,24 +59,19 @@ export default function ({ userId, closeModal }) {
   };
 
   const handleUserWallet = async () => {
-    setShow(true);
-    setLoading(true);
-
-    const response = await agentFundUserWallet({ agent: userId, amount, time, pin, resolution, ticket_ref: ticketRef });
-
-    // agent, from, amount, time,
-
-    if (response.ok) {
-      setLoading(false);
-      setStatus(true);
-      setStatusMessage(response.data.message);
-
-      return;
-    }
-
-    setLoading(false);
-    setStatus(false);
-    setStatusMessage(response.data.message);
+    // setShow(true);
+    // setLoading(true);
+    // const response = await agentFundUserWallet({ agent: userId, amount, time, pin, resolution, ticket_ref: ticketRef });
+    // // agent, from, amount, time,
+    // if (response.ok) {
+    //   setLoading(false);
+    //   setStatus(true);
+    //   setStatusMessage(response.data.message);
+    //   return;
+    // }
+    // setLoading(false);
+    // setStatus(false);
+    // setStatusMessage(response.data.message);
   };
 
   const handleValidateUser = async () => {
@@ -94,12 +89,16 @@ export default function ({ userId, closeModal }) {
 
   React.useEffect(() => {
     if (amount !== '' && time && pin) {
+      if (resolution && ticketRef === '') {
+        setValid(false);
+        return;
+      }
       setValid(true);
       return;
     }
 
     setValid(false);
-  }, [amount, time, pin]);
+  }, [amount, time, pin, resolution, ticketRef]);
 
   const handleRouteToTicketMessage = (ticketId) => {
     navigate(`/dashboard/ticket/message?ticketId=${ticketId}`);

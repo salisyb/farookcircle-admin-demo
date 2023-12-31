@@ -143,7 +143,7 @@ export default function TicketMessages() {
 
   const handleCloseTicket = async () => {
     setCloseLoading(true);
-    const request = await closeTicket(selectedTicket?.id, { close_by: user?.username });
+    const request = await closeTicket(selectedTicket?.id, { closed_by: user?.username });
     if (request.ok) {
       toast.success('Ticket Closed Successfully');
       setCloseLoading(false);
