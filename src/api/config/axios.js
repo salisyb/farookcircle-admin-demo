@@ -9,5 +9,5 @@ export const apiExternal = create({
 });
 
 export const datashopAPI = create({
-  baseURL: 'https://admin.farookcircle.com',
+  baseURL: 'https://datashop.farookcircle.com',
 });
