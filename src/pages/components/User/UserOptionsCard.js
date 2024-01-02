@@ -22,7 +22,7 @@ import Iconify from '../../../components/Iconify';
 import { fundUsersWallet, agentFundUserWallet, validateUser } from '../../../api/users.api';
 import { createTicket as createUserTicket } from '../../../api/system.api';
 
-export default function ({ userId, closeModal }) {
+export default function UserOptionsCard ({ userId, closeModal, onSuccess }) {
   const dispatch = useDispatch();
   const { users } = useSelector((state) => state.users);
   const staff = useSelector((state) => state.auth.user);
@@ -284,7 +284,7 @@ export default function ({ userId, closeModal }) {
                       <>
                         <Typography textAlign={'center'}>{statusMessage}</Typography>
 
-                        <Button variant="outlined" onClick={status ? closeModal : () => setShow(false)}>
+                        <Button variant="outlined" onClick={status ? onSuccess : () => setShow(false)}>
                           Ok
                         </Button>
                       </>

@@ -182,18 +182,18 @@ export default function TicketList() {
     setTicketUsers(data);
   }, [users]);
 
-  React.useEffect(() => {
-    dispatch(fetchAllTicket());
-    dispatch(getUsers());
-    startPolling();
-  }, [dispatch, startPolling]);
+  // React.useEffect(() => {
+  //   dispatch(fetchAllTicket());
+  //   dispatch(getUsers());
+  //   startPolling();
+  // }, [dispatch, startPolling]);
 
-  useEffect(() => {
-    console.log('Cleaning up');
-    return () => {
-      stopPolling();
-    };
-  }, [stopPolling]);
+  // useEffect(() => {
+  //   console.log('Cleaning up');
+  //   return () => {
+  //     stopPolling();
+  //   };
+  // }, [stopPolling]);
 
   useEffect(() => {
     generateUsersTicket();
@@ -217,7 +217,7 @@ export default function TicketList() {
   };
 
   const handleApplyFilter = (filter) => {
-    console.log(filter);
+    console.log('Called Filter')
     if (Object.keys(filter).length < 1) {
       setFilterTickets(tickets);
       return;

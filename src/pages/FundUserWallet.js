@@ -166,10 +166,15 @@ export default function FundUserWallet() {
     dispatch(removeUser(id));
   };
 
+  const onSuccess = () => {
+    setFilterName('');
+    toggleModal();
+  };
+
   return (
     <Page title="User">
       <BasicModal isOpen={userClicked} toggleOpen={toggleModal}>
-        <UserOptionsCard userId={userClickId} closeModal={toggleModal} />
+        <UserOptionsCard userId={userClickId} closeModal={toggleModal} onSuccess={onSuccess} />
       </BasicModal>
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
