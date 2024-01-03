@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable camelcase */
 import React, { useCallback, useState } from 'react';
@@ -171,7 +172,9 @@ export default function TicketMessages() {
           <Typography fontWeight={'700'}>Descriptions:</Typography>
           <Typography sx={{ mb: '10px' }}>{selectedTicket?.descriptions}</Typography>
 
-          {selectedTicket?.attachment && <img src={selectedTicket?.attachment} alt={'desc-attachment'} />}
+          {selectedTicket?.attachment && (
+            <Button onClick={() => open(selectedTicket?.attachment, '_blank')}>View Attachment</Button>
+          )}
           <Button onClick={() => setToggleDescriptions(false)} variant="contained" sx={{ mt: '10px' }}>
             Close
           </Button>
