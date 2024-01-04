@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable camelcase */
 import React, { useCallback, useEffect, useState } from 'react';
@@ -209,18 +210,25 @@ export default function TicketList() {
   };
 
   const handleApplyFilter = (filter) => {
-    console.log('Called Filter');
     if (Object.keys(filter).length < 1) {
       setFilterTickets(tickets);
       return;
     }
+
     const filteredList = tickets.filter((ticket) => {
-      // eslint-disable-next-line no-restricted-syntax
       for (const key in filter) {
-        if (ticket[key] !== filter[key]) {
+        if (ticket[key] !== filter[key] && key !== 'created_at') {
           return false;
         }
       }
+
+      if (filter.created_at) {
+
+        if (filter.created_at !== moment(ticket.created_at).format('YYYY-MM-DD')) {
+          return false;
+        }
+      }
+
       return true;
     });
 
