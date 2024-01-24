@@ -11,3 +11,7 @@ export const apiExternal = create({
 export const datashopAPI = create({
   baseURL: 'https://datashop.farookcircle.com',
 });
+
+// export const datashopAPI = create({
+//   baseURL: 'http://127.0.0.1:8000',
+// });

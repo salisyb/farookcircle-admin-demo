@@ -1,31 +1,27 @@
 /* eslint-disable no-restricted-globals */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable camelcase */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { filter } from 'lodash';
-import { sentenceCase } from 'change-case';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 // material
 import {
   Card,
   Stack,
-  Avatar,
   Button,
   Container,
   Typography,
   TextField,
   Box,
-  FormControl,
   CircularProgress,
   IconButton,
+  Avatar,
 } from '@mui/material';
 
-import moment from 'moment-timezone';
 import { toast } from 'react-toastify';
 import { LoadingButton } from '@mui/lab';
-import { closeTicket, createTicketMessage, getTicketById, getTicketMessage } from '../api/system.api';
-import { fetchAllTicket } from '../store/actions/system';
+import moment from 'moment-timezone';
+import { closeTicket, createTicketMessage, getTicketMessage } from '../api/system.api';
 // components
 
 import Page from '../components/Page';
@@ -122,7 +118,7 @@ export default function TicketMessages() {
         id: -1,
         ticket: selectedTicket?.id,
         message,
-        sender: user.username,
+        sender: user.alias,
         attachment: attachment ? attachmentPreview : null,
       },
     ]);
@@ -144,7 +140,7 @@ export default function TicketMessages() {
 
   const handleCloseTicket = async () => {
     setCloseLoading(true);
-    const request = await closeTicket(selectedTicket?.id, { closed_by: user?.username });
+    const request = await closeTicket(selectedTicket?.id, { closed_by: user?.alias });
     if (request.ok) {
       toast.success('Ticket Closed Successfully');
       setCloseLoading(false);
@@ -161,16 +157,127 @@ export default function TicketMessages() {
     toast.success('Copied to clipboard');
   };
 
+  const [lastViewTicket, setLastViewTicket] = useState([]);
+
+  const handleGetSavedTicketList = useCallback(async () => {
+    const savedTicketList = await localStorage.getItem('ticketListView');
+
+    if (savedTicketList) {
+      // save but remove the one we have
+      const parseData = JSON.parse(savedTicketList);
+      setLastViewTicket(parseData.filter((item) => item.id !== ticketId));
+    }
+  }, [ticketId]);
+
+  const handleUpdateLastViewTicket = useCallback(async () => {
+    const lastMessage = ticketMessages[ticketMessages.length - 1];
+
+    if (lastMessage) {
+      await localStorage.setItem(
+        'ticketListView',
+        JSON.stringify([...lastViewTicket, { id: ticketId, last_message: lastMessage.message }])
+      );
+    }
+  }, [lastViewTicket, ticketId, ticketMessages]);
+
+  useEffect(() => {
+    handleGetSavedTicketList();
+  }, [handleGetSavedTicketList]);
+
+  useEffect(() => {
+    handleUpdateLastViewTicket();
+  }, [handleUpdateLastViewTicket, ticketMessages.length]);
+
   return (
     <>
       <ModalC isOpen={toggleDescriptions} setOpen={() => setToggleDescriptions(false)}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <Typography marginTop={'10px'} fontWeight={'700'}>
-            Title:
-          </Typography>
-          <Typography>{selectedTicket?.title}</Typography>
-          <Typography fontWeight={'700'}>Descriptions:</Typography>
-          <Typography sx={{ mb: '10px' }}>{selectedTicket?.descriptions}</Typography>
+        <Stack spacing={1}>
+          <Stack>
+            <Typography color={'#666666'} marginTop={'10px'} fontWeight={'300'} fontSize={'14px'}>
+              Title
+            </Typography>
+            <Typography fontWeight={'600'}>{selectedTicket?.title}</Typography>
+          </Stack>
+          <Stack>
+            <Typography color={'#666666'} fontWeight={'300'} fontSize={'14px'}>
+              Descriptions
+            </Typography>
+            <Typography fontWeight={'600'}>{selectedTicket?.descriptions}</Typography>
+          </Stack>
+
+          <Stack>
+            <Typography color={'#666666'} fontWeight={'300'} fontSize={'14px'}>
+              Ticket Owner
+            </Typography>
+            <Stack direction={'row'} alignItems={'center'} spacing={1}>
+              <Avatar sx={{ width: 30, height: 30 }} />
+              <Stack>
+                <Typography fontWeight={'600'} fontSize={'14px'}>
+                  {ticketOwner?.first_name} {ticketOwner?.last_name}
+                </Typography>
+                <Typography>{ticketOwner?.username}</Typography>
+              </Stack>
+            </Stack>
+          </Stack>
+
+          <Stack>
+            <Typography color={'#666666'} fontWeight={'300'} fontSize={'14px'}>
+              Reference
+            </Typography>
+            <Typography fontWeight={'600'}>{selectedTicket?.reference}</Typography>
+          </Stack>
+
+          <Stack>
+            <Typography color={'#666666'} fontWeight={'300'} fontSize={'14px'}>
+              Created at
+            </Typography>
+            <Typography fontWeight={'600'}>{moment(selectedTicket?.created_at).format('MMM D YYYY LT')}</Typography>
+          </Stack>
+
+          <Stack>
+            <Typography color={'#666666'} fontWeight={'300'} fontSize={'14px'}>
+              Created By
+            </Typography>
+            <Typography fontWeight={'600'}>{selectedTicket?.created_by}</Typography>
+          </Stack>
+
+          <Stack>
+            <Typography color={'#666666'} fontWeight={'300'} fontSize={'14px'}>
+              Status
+            </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                bgcolor: selectedTicket?.is_closed ? '#D7FCD4' : '#E5E5E5',
+                width: '70px',
+                borderRadius: '5px',
+                height: '20px',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '1px solid black',
+              }}
+            >
+              <Typography fontSize={'12px'} color={selectedTicket?.is_closed ? 'green' : 'black'}>
+                {selectedTicket?.is_closed ? 'Closed' : 'Open'}
+              </Typography>
+            </Box>
+          </Stack>
+
+          {selectedTicket?.is_closed && (
+            <Stack>
+              <Typography color={'#666666'} fontWeight={'300'} fontSize={'14px'}>
+                Ticket Close By
+              </Typography>
+              <Typography fontWeight={'600'}>{selectedTicket?.closed_by}</Typography>
+            </Stack>
+          )}
+
+          <Stack>
+            <Typography color={'#666666'} fontWeight={'300'} fontSize={'14px'}>
+              Attended By
+            </Typography>
+            <Typography fontWeight={'600'}>{selectedTicket?.attended_by}</Typography>
+          </Stack>
 
           {selectedTicket?.attachment && (
             <Button onClick={() => open(selectedTicket?.attachment, '_blank')}>View Attachment</Button>
@@ -178,7 +285,7 @@ export default function TicketMessages() {
           <Button onClick={() => setToggleDescriptions(false)} variant="contained" sx={{ mt: '10px' }}>
             Close
           </Button>
-        </Box>
+        </Stack>
       </ModalC>
       <ModalC isOpen={isLoading}>
         <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
@@ -268,21 +375,41 @@ export default function TicketMessages() {
                 {ticketMessages.map((conversation, index) => (
                   <Stack
                     key={index}
+                    spacing={1}
                     sx={{
                       padding: '10px',
-                      bgcolor: conversation?.sender === ticketOwner?.username ? '#E5E5E5' : '#D6E4FF',
-                      borderRadius: '10px',
-                      maxWidth: '80%',
+                      bgcolor: conversation?.sender === ticketOwner?.username ? '#FFE9D2' : '#D6E4FF',
+                      borderRadius: '5px',
+                      minWidth: '100%',
                       display: 'flex',
-                      alignSelf: conversation?.sender === ticketOwner?.username ? 'flex-start' : 'flex-end',
+                      borderLeftWidth: '5px',
+                      borderLeftStyle: 'solid',
+                      borderLeftColor: conversation?.sender === ticketOwner?.username ? '#FF4D2D' : '#3366FF',
+                      // alignSelf: conversation?.sender === ticketOwner?.username ? 'flex-start' : 'flex-end',
                     }}
                   >
+                    <Stack direction={'row'} spacing={1} sx={{ alignItems: 'center' }}>
+                      <Avatar sx={{ width: 30, height: 30 }} />
+                      <Typography sx={{ color: 'black' }} variant={'body1'}>
+                        {conversation.sender}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          color: 'gray',
+                          fontSize: '12px',
+                        }}
+                      >
+                        {moment(conversation.created_at).format('D MMM hh:mm a')}
+                      </Typography>
+                    </Stack>
                     {conversation.attachment && (
                       <Box onClick={() => setImageOverlay(conversation.attachment)}>
                         <img src={conversation.attachment} alt={'conversation'} />
                       </Box>
                     )}
-                    <Typography sx={{ color: 'black' }}>{conversation.message}</Typography>
+                    <Typography sx={{ color: 'black' }} variant="body2">
+                      {conversation.message}
+                    </Typography>
                   </Stack>
                 ))}
               </Stack>
