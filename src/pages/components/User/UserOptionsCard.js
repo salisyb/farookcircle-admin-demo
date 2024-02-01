@@ -22,7 +22,7 @@ import Iconify from '../../../components/Iconify';
 import { fundUsersWallet, agentFundUserWallet, validateUser } from '../../../api/users.api';
 import { createTicket as createUserTicket } from '../../../api/system.api';
 
-export default function UserOptionsCard ({ userId, closeModal, onSuccess }) {
+export default function UserOptionsCard({ userId, closeModal, onSuccess }) {
   const dispatch = useDispatch();
   const { users } = useSelector((state) => state.users);
   const staff = useSelector((state) => state.auth.user);
@@ -123,6 +123,10 @@ export default function UserOptionsCard ({ userId, closeModal, onSuccess }) {
       return errors;
     },
   });
+
+  const handleNavigateToTicket = () => {
+    navigate(`/dashboard/ticket?user=${userId}`);
+  };
 
   const handleCreateUserTicket = async (data) => {
     const formData = new FormData();
@@ -333,6 +337,7 @@ export default function UserOptionsCard ({ userId, closeModal, onSuccess }) {
                       id="outlined-required"
                       label="Your PIN"
                       value={pin}
+                      type="password"
                       onChange={(event) => setPin(event.target.value)}
                     />
                   </Stack>
@@ -373,17 +378,9 @@ export default function UserOptionsCard ({ userId, closeModal, onSuccess }) {
                       >
                         Fund Agent Wallet
                       </Button>{' '}
-                      <Button
-                        variant={'contained'}
-                        onClick={() => {
-                          setCreateTicket(true);
-                        }}
-                      >
-                        Create Ticket for user
+                      <Button variant={'contained'} onClick={handleNavigateToTicket}>
+                        Tickets
                       </Button>
-                      {/* <Button variant={'contained'} onClick={handleViewUserTicket}>
-                        View User Ticket
-                      </Button> */}
                     </Stack>
                   )}
                 </Box>

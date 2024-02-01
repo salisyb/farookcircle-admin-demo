@@ -2,36 +2,36 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable camelcase */
 import React, { useCallback, useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 // material
 import {
-  Card,
-  Stack,
-  Button,
-  Container,
-  Typography,
-  TextField,
-  Box,
-  CircularProgress,
-  IconButton,
   Avatar,
+  Box,
+  Button,
+  Card,
+  CircularProgress,
+  Container,
+  FormControl,
+  IconButton,
+  Stack,
+  TextField,
+  Typography,
 } from '@mui/material';
 
-import { toast } from 'react-toastify';
 import { LoadingButton } from '@mui/lab';
 import moment from 'moment-timezone';
+import { toast } from 'react-toastify';
 import { closeTicket, createTicketMessage, getTicketMessage } from '../api/system.api';
 // components
 
-import Page from '../components/Page';
 import Iconify from '../components/Iconify';
+import Page from '../components/Page';
 import ModalC from './components/CModal';
 
 const POLLING_INTERVAL = 5000;
 
 export default function TicketMessages() {
-  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const location = useLocation();
 
@@ -52,6 +52,10 @@ export default function TicketMessages() {
   const [attachment, setAttachment] = useState(null);
   const [attachmentPreview, setAttachmentPreview] = useState(null);
   const [pollingId, setPollingId] = useState();
+
+  const [closeTicketModal, setCloseTicketModal] = useState(false);
+
+  const [resolution, setResolution] = useState('');
 
   const handleGetTicketMessages = useCallback(async () => {
     const request = await getTicketMessage(ticketId);
@@ -138,9 +142,13 @@ export default function TicketMessages() {
     toast.error('Send Error', request.data?.message ? request.data?.message : 'Unable to send your ticket message');
   };
 
+  const handleToggleCloseTicket = () => {
+    setCloseTicketModal(true);
+  };
+
   const handleCloseTicket = async () => {
     setCloseLoading(true);
-    const request = await closeTicket(selectedTicket?.id, { closed_by: user?.alias });
+    const request = await closeTicket(selectedTicket?.id, { closed_by: user?.alias, resolution });
     if (request.ok) {
       toast.success('Ticket Closed Successfully');
       setCloseLoading(false);
@@ -272,6 +280,15 @@ export default function TicketMessages() {
             </Stack>
           )}
 
+          {selectedTicket?.is_closed && selectedTicket?.resolution && (
+            <Stack>
+              <Typography color={'#666666'} fontWeight={'300'} fontSize={'14px'}>
+                Ticket Resolution
+              </Typography>
+              <Typography fontWeight={'600'}>{selectedTicket?.resolution}</Typography>
+            </Stack>
+          )}
+
           <Stack>
             <Typography color={'#666666'} fontWeight={'300'} fontSize={'14px'}>
               Attended By
@@ -287,16 +304,45 @@ export default function TicketMessages() {
           </Button>
         </Stack>
       </ModalC>
-      <ModalC isOpen={isLoading}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-          <CircularProgress />
-          <Typography marginTop={'10px'}>Loading Conversation please wait...</Typography>
+      <ModalC isOpen={closeTicketModal} setOpen={() => setCloseTicketModal(false)}>
+        <Box
+          sx={{
+            display: 'flex',
+            minHeight: 300,
+            flexDirection: 'column',
+          }}
+        >
+          {closeLoading ? (
+            <>
+              <CircularProgress />
+              <Typography marginTop={'10px'}>Closing ticket please wait...</Typography>
+            </>
+          ) : (
+            <Stack spacing={1}>
+              <Typography variant="h6">Ticket Resolution</Typography>
+              <Typography>Please provide details about how the issue was resolved.</Typography>
+              <FormControl fullWidth>
+                <TextField
+                  value={resolution}
+                  onChange={(e) => setResolution(e.target.value)}
+                  id="outlined-multiline-static"
+                  label="Resolution"
+                  multiline
+                  rows={4}
+                  variant="outlined"
+                />
+              </FormControl>
+              <Button disabled={!resolution} onClick={handleCloseTicket} variant="contained" color="primary">
+                Close Ticket
+              </Button>
+            </Stack>
+          )}
         </Box>
       </ModalC>
-      <ModalC isOpen={closeLoading}>
+      <ModalC isOpen={isLoading}>
         <Box sx={{ display: 'flex', direction: 'column', justifyContent: 'center', alignItems: 'center' }}>
           <CircularProgress />
-          <Typography mt={'10px'}>Closing ticket please wait...</Typography>
+          <Typography mt={'10px'}>Loading Conversation please wait...</Typography>
         </Box>
       </ModalC>
       {imageOverlay && (
@@ -364,8 +410,8 @@ export default function TicketMessages() {
             </Stack>
             <Stack my={2} direction={'row'} justifyContent={'space-between'} spacing={1}>
               <Button onClick={() => setToggleDescriptions(true)}>View Ticket Descriptions</Button>
-              {!selectedTicket?.is_closed && (
-                <LoadingButton onClick={() => handleCloseTicket()} loading={closeLoading} variant={'outlined'}>
+              {!selectedTicket?.is_closed && user?.isSuperUser && (
+                <LoadingButton onClick={handleToggleCloseTicket} loading={closeLoading} variant={'outlined'}>
                   Close Ticket
                 </LoadingButton>
               )}

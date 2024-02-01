@@ -6,7 +6,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import _, { filter } from 'lodash';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 // material
 import {
   Card,
@@ -39,7 +39,7 @@ import { useFormik } from 'formik';
 import { toast } from 'react-toastify';
 import { formatMessageTime } from '../utils/formatTime';
 import { getUsers } from '../store/actions/users';
-import { fetchAllTicket } from '../store/actions/system';
+import { fetchAllTicket, fetchUserTicket } from '../store/actions/system';
 import { createTicket, getAllTicket } from '../api/system.api';
 import TicketListToolbar from '../sections/@dashboard/user/TicketListToolbar';
 
@@ -91,6 +91,8 @@ function applySortFilter(array, comparator, query) {
 
 export default function TicketList() {
   const dispatch = useDispatch();
+
+  // get user from query params
 
   const navigate = useNavigate();
 
@@ -151,6 +153,11 @@ export default function TicketList() {
 
   const [ticketUsers, setTicketUsers] = useState([]);
 
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+
+  const ticketForUser = queryParams.get('user');
+
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     setSelectedFile(file);
@@ -187,10 +194,18 @@ export default function TicketList() {
     setTicketUsers(data);
   }, [users]);
 
+  const fetchTickets = useCallback(() => {
+    if (ticketForUser) {
+      dispatch(fetchUserTicket(ticketForUser));
+    } else {
+      dispatch(fetchAllTicket());
+    }
+  }, [dispatch, ticketForUser]);
+
   React.useEffect(() => {
-    dispatch(fetchAllTicket());
+    fetchTickets();
     dispatch(getUsers());
-  }, [dispatch]);
+  }, [dispatch, fetchTickets, ticketForUser]);
 
   useEffect(() => {
     generateUsersTicket();
@@ -256,7 +271,7 @@ export default function TicketList() {
 
   const formik = useFormik({
     initialValues: {
-      user: null,
+      user: ticketForUser,
       title: '',
       descriptions: '',
     },
@@ -284,8 +299,8 @@ export default function TicketList() {
     formData.append('title', data.title);
     formData.append('descriptions', data.descriptions);
     formData.append('user_id', data.user.value);
-    formData.append('attended_by', user?.username);
-    formData.append('created_by', user.username);
+    formData.append('attended_by', user?.alias);
+    formData.append('created_by', user?.alias);
 
     if (selectedFile) {
       formData.append('attachment', selectedFile);
@@ -368,7 +383,8 @@ export default function TicketList() {
                 disablePortal
                 id="combo-box-demo"
                 options={ticketUsers}
-                value={formik.values.user}
+                value={ticketForUser || formik.values.user}
+                disabled={ticketForUser !== null}
                 onChange={(event, newValue) => formik.setFieldValue('user', newValue)}
                 renderInput={(params) => (
                   <TextField {...params} label="User" error={formik.touched.user && Boolean(formik.errors.user)} />
@@ -511,7 +527,7 @@ export default function TicketList() {
                 <Button variant={'contained'} size="medium" onClick={() => setToggleCreateTicket(!toggleCreateTicket)}>
                   New Ticket
                 </Button>
-                <Button variant="contained" onClick={() => dispatch(fetchAllTicket())}>
+                <Button variant="contained" onClick={fetchTickets}>
                   Refresh
                 </Button>
               </Stack>
@@ -548,12 +564,7 @@ export default function TicketList() {
                               >
                                 <Badge
                                   color="secondary"
-                                  variant={
-                                    
-                                      handleTicketStatus(id, is_closed,  row?.last_message)
-                                      ? 'dot'
-                                      : 'standard'
-                                  }
+                                  variant={handleTicketStatus(id, is_closed, row?.last_message) ? 'dot' : 'standard'}
                                 >
                                   <Iconify icon="ic:twotone-email" width={20} height={20} />
                                 </Badge>

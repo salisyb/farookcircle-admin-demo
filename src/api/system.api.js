@@ -12,6 +12,17 @@ export const getAllTicket = async () => {
   return datashopAPI.get('/system/admin/ticket', {}, config);
 };
 
+export const getUserTickets = async (user) => {
+  const { token } = store.getState().auth;
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  return datashopAPI.get('/system/admin/ticket', { user }, config);
+};
+
 export const getTicketById = async (id) => {
   const { token } = store.getState().auth;
 
