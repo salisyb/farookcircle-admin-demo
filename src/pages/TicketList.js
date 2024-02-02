@@ -37,12 +37,12 @@ import moment from 'moment-timezone';
 import { LoadingButton } from '@mui/lab';
 import { useFormik } from 'formik';
 import { toast } from 'react-toastify';
+import { v4 as uuidv4 } from 'uuid';
 import { formatMessageTime } from '../utils/formatTime';
 import { getUsers } from '../store/actions/users';
 import { fetchAllTicket, fetchUserTicket } from '../store/actions/system';
 import { createTicket, getAllTicket } from '../api/system.api';
 import TicketListToolbar from '../sections/@dashboard/user/TicketListToolbar';
-
 // components
 
 import Page from '../components/Page';
@@ -294,11 +294,13 @@ export default function TicketList() {
   });
 
   const handleCreateUserTicket = async (data) => {
+    console.log(data);
     const formData = new FormData();
-
+    const user_id = ticketForUser || data.user.value;
     formData.append('title', data.title);
     formData.append('descriptions', data.descriptions);
-    formData.append('user_id', data.user.value);
+    formData.append('user_id', user_id);
+    formData.append('reference', data.reference);
     formData.append('attended_by', user?.alias);
     formData.append('created_by', user?.alias);
 
@@ -371,7 +373,12 @@ export default function TicketList() {
   return (
     <Page title="Staff">
       <>
-        <ModalC isOpen={toggleCreateTicket} setOpen={() => setToggleCreateTicket(!toggleCreateTicket)}>
+        <ModalC
+          isOpen={toggleCreateTicket}
+          setOpen={() => {
+            setToggleCreateTicket(!toggleCreateTicket);
+          }}
+        >
           <form onSubmit={formik.handleSubmit}>
             <Stack spacing={2}>
               <Stack alignItems={'flex-end'}>
@@ -455,7 +462,12 @@ export default function TicketList() {
                 </Stack>
               )}
 
-              <LoadingButton loading={createTicketLoading} type="submit" variant="contained">
+              <LoadingButton
+                disabled={createTicketLoading}
+                loading={createTicketLoading}
+                type="submit"
+                variant="contained"
+              >
                 Create Ticket
               </LoadingButton>
             </Stack>
@@ -524,7 +536,15 @@ export default function TicketList() {
               </FormControl>
 
               <Stack direction="row" alignItems={'center'} spacing={1}>
-                <Button variant={'contained'} size="medium" onClick={() => setToggleCreateTicket(!toggleCreateTicket)}>
+                <Button
+                  variant={'contained'}
+                  size="medium"
+                  onClick={() => {
+                    setToggleCreateTicket(!toggleCreateTicket);
+                    // generate uuid for the reference
+                    formik.setFieldValue('reference', uuidv4());
+                  }}
+                >
                   New Ticket
                 </Button>
                 <Button variant="contained" onClick={fetchTickets}>
