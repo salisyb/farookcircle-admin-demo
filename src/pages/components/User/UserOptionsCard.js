@@ -144,7 +144,7 @@ export default function UserOptionsCard({ userId, closeModal, onSuccess }) {
     const request = await createUserTicket(formData);
     if (request.ok) {
       toast.success('You have successfully create new ticket');
-      handleRouteToTicketMessage(request.data?.id);
+      // handleRouteToTicketMessage(request.data?.id);
       setCreateTicketLoading(false);
       closeModal();
       return;

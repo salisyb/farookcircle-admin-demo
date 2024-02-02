@@ -313,7 +313,8 @@ export default function TicketList() {
     const request = await createTicket(formData);
     if (request.ok) {
       toast.success('You have successfully create new ticket');
-      handleRouteToTicketMessage(request.data);
+      // handleRouteToTicketMessage(request.data);
+      fetchTickets()
       setCreateTicketLoading(false);
       setToggleCreateTicket(false);
       return;

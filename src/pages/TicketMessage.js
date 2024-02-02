@@ -246,7 +246,9 @@ export default function TicketMessages() {
             <Typography color={'#666666'} fontWeight={'300'} fontSize={'14px'}>
               Created By
             </Typography>
-            <Typography fontWeight={'600'}>{selectedTicket?.created_by}</Typography>
+            <Typography fontWeight={'600'}>
+              {selectedTicket?.created_by === ticketOwner?.username ? 'Owner' : selectedTicket?.created_by}
+            </Typography>
           </Stack>
 
           <Stack>
@@ -271,10 +273,17 @@ export default function TicketMessages() {
             </Box>
           </Stack>
 
+          <Stack>
+            <Typography color={'#666666'} fontWeight={'300'} fontSize={'14px'}>
+              Ticket Attended By
+            </Typography>
+            <Typography fontWeight={'600'}>{selectedTicket?.attended_by}</Typography>
+          </Stack>
+
           {selectedTicket?.is_closed && (
             <Stack>
               <Typography color={'#666666'} fontWeight={'300'} fontSize={'14px'}>
-                Ticket Close By
+                Ticket Closed By
               </Typography>
               <Typography fontWeight={'600'}>{selectedTicket?.closed_by}</Typography>
             </Stack>
@@ -288,13 +297,6 @@ export default function TicketMessages() {
               <Typography fontWeight={'600'}>{selectedTicket?.resolution}</Typography>
             </Stack>
           )}
-
-          <Stack>
-            <Typography color={'#666666'} fontWeight={'300'} fontSize={'14px'}>
-              Attended By
-            </Typography>
-            <Typography fontWeight={'600'}>{selectedTicket?.attended_by}</Typography>
-          </Stack>
 
           {selectedTicket?.attachment && (
             <Button onClick={() => open(selectedTicket?.attachment, '_blank')}>View Attachment</Button>
