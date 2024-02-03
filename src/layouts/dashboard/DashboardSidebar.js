@@ -1,11 +1,13 @@
 import PropTypes from 'prop-types';
 import { useEffect } from 'react';
-import { useSelector } from 'react-redux';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 // material
 import { styled } from '@mui/material/styles';
 import { Box, Link, Drawer, Typography, Avatar } from '@mui/material';
 // mock
+import { userLogOut } from '../../store/actions/auth';
+import Iconify from '../../components/Iconify';
 import account from '../../_mock/account';
 // hooks
 import useResponsive from '../../hooks/useResponsive';
@@ -44,10 +46,17 @@ DashboardSidebar.propTypes = {
 
 export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
   const { pathname } = useLocation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const isDesktop = useResponsive('up', 'lg');
 
   const { user } = useSelector((state) => state.auth);
+
+  const handleLogout = () => {
+    dispatch(userLogOut());
+    navigate('/login');
+  };
 
   useEffect(() => {
     if (isOpenSidebar) {
@@ -72,11 +81,11 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
           <AccountStyle>
             <Avatar src={account.photoURL} alt="photoURL" />
             <Box sx={{ ml: 2 }}>
-              <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
+              <Typography variant="subtitle2" sx={{ color: 'white' }}>
                 {user && `${user.username}`}
               </Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                {account.role}
+              <Typography variant="body2" sx={{ color: 'black' }}>
+                {user?.isSuperUser ? 'Admin' : 'Staff'}
               </Typography>
             </Box>
           </AccountStyle>
@@ -86,6 +95,19 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
       <NavSection navConfig={navConfig} />
 
       <Box sx={{ flexGrow: 1 }} />
+
+      <Box sx={{ mb: 5, mx: 2.5 }} onClick={handleLogout}>
+        <Link underline="none" component={RouterLink} to="#">
+          <AccountStyle>
+            <Iconify icon="bi:box-arrow-right" width={24} height={24} color="white" />
+            <Box sx={{ ml: 2 }}>
+              <Typography variant="subtitle2" sx={{ color: 'white' }}>
+                Log out
+              </Typography>
+            </Box>
+          </AccountStyle>
+        </Link>
+      </Box>
     </Scrollbar>
   );
 
@@ -96,7 +118,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
           open={isOpenSidebar}
           onClose={onCloseSidebar}
           PaperProps={{
-            sx: { width: DRAWER_WIDTH },
+            sx: { width: DRAWER_WIDTH, bgcolor: '#3366FF' },
           }}
         >
           {renderContent}
@@ -110,7 +132,7 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
           PaperProps={{
             sx: {
               width: DRAWER_WIDTH,
-              bgcolor: 'background.default',
+              bgcolor: '#3366FF',
               borderRightStyle: 'dashed',
             },
           }}

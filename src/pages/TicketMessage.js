@@ -152,7 +152,7 @@ export default function TicketMessages() {
     if (request.ok) {
       toast.success('Ticket Closed Successfully');
       setCloseLoading(false);
-      navigate('/dashboard/ticket');
+      navigate('/dashboard/tickets');
       return;
     }
 
@@ -380,7 +380,7 @@ export default function TicketMessages() {
           <Container sx={{ overflow: 'hidden' }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Stack direction={'row'} alignItems={'center'} spacing={1}>
-                <Button onClick={() => navigate('/dashboard/ticket')} variant={'contained'}>
+                <Button onClick={() => navigate('/dashboard/tickets')} variant={'contained'}>
                   <Iconify icon="eva:arrow-back-outline" width={20} height={20} />
                 </Button>
                 <Typography variant="h4" gutterBottom>

@@ -255,7 +255,7 @@ export default function User() {
               <Button
                 variant="contained"
                 component={RouterLink}
-                to="/dashboard/ticket"
+                to="/dashboard/tickets"
                 startIcon={<Iconify icon="eva:archive-outline" />}
               >
                 Tickets
@@ -263,7 +263,7 @@ export default function User() {
               <Button
                 variant="contained"
                 component={RouterLink}
-                to="/dashboard/funding"
+                to="/dashboard/users"
                 startIcon={<Iconify icon="eva:people-outline" />}
               >
                 Users

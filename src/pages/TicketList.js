@@ -266,7 +266,7 @@ export default function TicketList() {
     // save it on local storage
     localStorage.setItem('ticketListView', JSON.stringify(newViewTicket));
 
-    navigate(`/dashboard/ticket/message?ticketId=${ticket.id}`);
+    navigate(`/dashboard/tickets/message?ticketId=${ticket.id}`);
   };
 
   const formik = useFormik({

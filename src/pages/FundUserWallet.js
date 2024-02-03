@@ -179,7 +179,7 @@ export default function FundUserWallet() {
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Funding
+            Users Management
           </Typography>
           <Button
             variant="contained"

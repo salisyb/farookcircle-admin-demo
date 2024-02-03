@@ -9,48 +9,18 @@ const navConfig = [
   {
     title: 'dashboard',
     path: '/dashboard/app',
-    icon: getIcon('eva:pie-chart-2-fill'),
+    icon: getIcon('material-symbols:dashboard'),
   },
   {
-    title: 'users',
-    path: '/dashboard/user',
-    icon: getIcon('eva:people-fill'),
+    title: 'Users',
+    path: '/dashboard/users',
+    icon: getIcon('ph:users-fill'),
   },
   {
-    title: 'Update Services',
-    path: '/dashboard/services',
-    icon: getIcon('eva:shopping-bag-fill'),
+    title: 'Tickets',
+    path: '/dashboard/tickets',
+    icon: getIcon('f7:tickets-fill'),
   },
-  {
-    title: 'Service Discount',
-    path: '/dashboard/discount',
-    icon: getIcon('eva:percent-outline'),
-  },
-  {
-    title: 'Transactions',
-    path: '/dashboard/transaction',
-    icon: getIcon('eva:sync-outline'),
-  },
-  // {
-  //   title: 'blog',
-  //   path: '/dashboard/blog',
-  //   icon: getIcon('eva:file-text-fill'),
-  // },
-  // {
-  //   title: 'login',
-  //   path: '/login',
-  //   icon: getIcon('eva:lock-fill'),
-  // },
-  // {
-  //   title: 'register',
-  //   path: '/register',
-  //   icon: getIcon('eva:person-add-fill'),
-  // },
-  // {
-  //   title: 'Not found',
-  //   path: '/404',
-  //   icon: getIcon('eva:alert-triangle-fill'),
-  // },
 ];
 
 export default navConfig;

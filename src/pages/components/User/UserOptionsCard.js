@@ -101,7 +101,7 @@ export default function UserOptionsCard({ userId, closeModal, onSuccess }) {
   }, [amount, time, pin, resolution, ticketRef]);
 
   const handleRouteToTicketMessage = (ticketId) => {
-    navigate(`/dashboard/ticket/message?ticketId=${ticketId}`);
+    navigate(`/dashboard/tickets/message?ticketId=${ticketId}`);
   };
 
   const formik = useFormik({
@@ -125,7 +125,7 @@ export default function UserOptionsCard({ userId, closeModal, onSuccess }) {
   });
 
   const handleNavigateToTicket = () => {
-    navigate(`/dashboard/ticket?user=${userId}`);
+    navigate(`/dashboard/tickets?user=${userId}`);
   };
 
   const handleCreateUserTicket = async (data) => {
@@ -155,7 +155,7 @@ export default function UserOptionsCard({ userId, closeModal, onSuccess }) {
   };
 
   const handleViewUserTicket = () => {
-    navigate(`/dashboard/ticket?userId=${user?.username}`);
+    navigate(`/dashboard/tickets?userId=${user?.username}`);
   };
 
   return (
