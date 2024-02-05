@@ -314,7 +314,7 @@ export default function TicketList() {
     if (request.ok) {
       toast.success('You have successfully create new ticket');
       // handleRouteToTicketMessage(request.data);
-      fetchTickets()
+      fetchTickets();
       setCreateTicketLoading(false);
       setToggleCreateTicket(false);
       return;
@@ -496,16 +496,6 @@ export default function TicketList() {
             <Typography variant="h4" gutterBottom>
               Tickets
             </Typography>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Button
-                variant="contained"
-                component={RouterLink}
-                to="/dashboard/app"
-                startIcon={<Iconify icon="eva:browser-outline" />}
-              >
-                Dashboard
-              </Button>
-            </Stack>
           </Stack>
           <Card>
             <TicketListToolbar

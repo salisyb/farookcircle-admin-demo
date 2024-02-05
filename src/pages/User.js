@@ -218,16 +218,13 @@ export default function User() {
     const request = await getUserInfo();
 
     if (request.ok) {
-      console.log(request.data)
+      console.log(request.data);
       dispatch({ type: USER_UPDATE, payload: request.data });
     }
   };
 
   return (
     <Page title="Staff">
-      {/* <BasicModal isOpen={userClicked} toggleOpen={toggleModal}>
-        <UserOptionsCard userId={userClickId} closeModal={toggleModal} />
-      </BasicModal> */}
       <>
         {isLoading && (
           <Box
@@ -251,24 +248,6 @@ export default function User() {
             <Typography variant="h4" gutterBottom>
               Staff
             </Typography>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Button
-                variant="contained"
-                component={RouterLink}
-                to="/dashboard/tickets"
-                startIcon={<Iconify icon="eva:archive-outline" />}
-              >
-                Tickets
-              </Button>
-              <Button
-                variant="contained"
-                component={RouterLink}
-                to="/dashboard/users"
-                startIcon={<Iconify icon="eva:people-outline" />}
-              >
-                Users
-              </Button>
-            </Stack>
           </Stack>
           <Card>
             <UserListToolbar
@@ -289,28 +268,17 @@ export default function User() {
                     rowCount={filterTransaction.length}
                     numSelected={selected.length}
                     onRequestSort={handleRequestSort}
-                    // onSelectAllClick={handleSelectAllClick}
                   />
                   <TableBody>
                     {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                       const { id, agent, amount, transaction_ref, date, status } = row;
                       const isItemSelected = selected.indexOf(id) !== -1;
-                      // date: '2023-04-25T18:33:05.615Z',
-                      // agent: '07064245859',
-                      // amount: '3500',
-                      // status: 'completed',
-                      // transaction_ref: 'admin|2304251833|05',
-                      // funded_by: 'admin',
-                      // bal_before: '172',
-                      // bal_after: '3672',
+
                       return (
                         <TableRow
                           hover
                           key={id}
                           tabIndex={-1}
-                          // role="checkbox"
-                          // selected={isItemSelected}
-                          // aria-checked={isItemSelected}
                           onClick={() => handleClickUser(id)}
                           sx={{ cursor: 'pointer' }}
                         >
