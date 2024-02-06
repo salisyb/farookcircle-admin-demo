@@ -204,7 +204,7 @@ export default function TicketList() {
 
   React.useEffect(() => {
     fetchTickets();
-    dispatch(getUsers());
+  
   }, [dispatch, fetchTickets, ticketForUser]);
 
   useEffect(() => {

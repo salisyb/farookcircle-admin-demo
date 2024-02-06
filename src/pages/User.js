@@ -185,7 +185,7 @@ export default function User() {
 
   React.useEffect(() => {
     dispatch(getTransactionsAgent({ date: new Date().toISOString().split('T')[0] }));
-    dispatch(getUsers());
+
     handleGetUserData();
   }, []);
 

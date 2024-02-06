@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import React from 'react';
+import React, { useState } from 'react';
 // material
 import {
   Avatar,
@@ -43,6 +43,7 @@ export default function UsersManagement() {
   const [toggleFundUser, setToggleFundUser] = React.useState(false);
   const [toggleSendUserMessage, setToggleSendUserMessage] = React.useState(false);
   const [toggleSendUserEmail, setToggleSendUserEmail] = React.useState(false);
+  const [firstTime, setFirstTime] = useState(true);
 
   const handleSearch = async () => {
     setSelectedUser(null);
@@ -123,7 +124,7 @@ export default function UsersManagement() {
             <Stack sx={{ flex: 2, padding: '10px', height: 'calc(80vh - 20px)' }}>
               {/* search for user  */}
               <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
-                {selectedUser && (
+                {!firstTime && (
                   <Paper
                     component="form"
                     sx={{
@@ -170,7 +171,7 @@ export default function UsersManagement() {
                 {selectedUser && (
                   <Stack direction={'row'} spacing={1}>
                     <Button disabled size={'small'} variant="outlined">
-                      Edit Info
+                      Modify
                     </Button>
                     <Avatar sx={{ width: '40px', height: '40px' }} />
                   </Stack>
@@ -250,50 +251,57 @@ export default function UsersManagement() {
                     justifyContent={'center'}
                     alignItems={'center'}
                   >
-                    <Paper
-                      component="form"
-                      sx={{
-                        p: '2px 4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        border: '1px solid #ADC8FF',
-                        width: 400,
-                      }}
-                    >
-                      <InputBase
-                        sx={{ ml: 1, flex: 1 }}
-                        placeholder="Enter user number"
-                        inputProps={{ 'aria-label': 'search for user' }}
-                        disabled={loading}
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                      />
-                      {!loading && search && (
-                        <IconButton
-                          onClick={() => setSearch('')}
-                          size={'20px'}
-                          color="primary"
-                          sx={{ p: '10px' }}
-                          aria-label="directions"
+                    {firstTime && (
+                      <>
+                        <Paper
+                          component="form"
+                          sx={{
+                            p: '2px 4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            border: '1px solid #ADC8FF',
+                            width: 400,
+                          }}
                         >
-                          <Iconify icon="streamline:delete-keyboard-solid" />
-                        </IconButton>
-                      )}
-                      <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-                      <IconButton
-                        disabled={loading}
-                        onClick={handleSearch}
-                        color="primary"
-                        sx={{ p: '10px' }}
-                        size="20px"
-                        aria-label="directions"
-                      >
-                        {loading ? <CircularProgress size={'25px'} /> : <Iconify icon="mdi:search" />}
-                      </IconButton>
-                    </Paper>
-                    <Typography variant="body2" sx={{ mt: '10px' }}>
-                      Search to load profile
-                    </Typography>
+                          <InputBase
+                            sx={{ ml: 1, flex: 1 }}
+                            placeholder="Enter user number"
+                            inputProps={{ 'aria-label': 'search for user' }}
+                            disabled={loading}
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                          />
+                          {!loading && search && (
+                            <IconButton
+                              onClick={() => setSearch('')}
+                              size={'20px'}
+                              color="primary"
+                              sx={{ p: '10px' }}
+                              aria-label="directions"
+                            >
+                              <Iconify icon="streamline:delete-keyboard-solid" />
+                            </IconButton>
+                          )}
+                          <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+                          <IconButton
+                            disabled={loading}
+                            onClick={() => {
+                              setFirstTime(false);
+                              handleSearch();
+                            }}
+                            color="primary"
+                            sx={{ p: '10px' }}
+                            size="20px"
+                            aria-label="directions"
+                          >
+                            {loading ? <CircularProgress size={'25px'} /> : <Iconify icon="mdi:search" />}
+                          </IconButton>
+                        </Paper>
+                        <Typography variant="body2" sx={{ mt: '10px' }}>
+                          Search to load profile
+                        </Typography>
+                      </>
+                    )}
                   </Box>
                 )}
                 <Divider sx={{ mt: '10px' }} />

@@ -26,12 +26,6 @@ export default function DashboardApp() {
   const { users, userWallet, walletSum } = useSelector((state) => state.users);
   const { services } = useSelector((state) => state.services);
 
-  React.useEffect(() => {
-    // get list of users
-
-    dispatch(getUsers());
-  }, []);
-
   return (
     <Page title="Dashboard">
       <Container maxWidth="xl">
