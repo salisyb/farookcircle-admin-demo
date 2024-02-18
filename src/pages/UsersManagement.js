@@ -32,6 +32,7 @@ import BasicModal from './components/Modal';
 import UserOptionsCard from './components/User/UserOptionsCard';
 import UserOptionsCardMessage from './components/User/UserOptionsCardMessage';
 import UserOptionsCardEmail from './components/User/UserOptionsCardEmail';
+import UserOptionsCardInfo from './components/User/UserOptionsCardInfo';
 
 export default function UsersManagement() {
   const navigate = useNavigate();
@@ -44,6 +45,8 @@ export default function UsersManagement() {
   const [toggleSendUserMessage, setToggleSendUserMessage] = React.useState(false);
   const [toggleSendUserEmail, setToggleSendUserEmail] = React.useState(false);
   const [firstTime, setFirstTime] = useState(true);
+
+  const [modifyUser, setModifyUser] = React.useState(false);
 
   const handleSearch = async () => {
     setSelectedUser(null);
@@ -95,6 +98,13 @@ export default function UsersManagement() {
     setToggleSendUserEmail(!toggleSendUserEmail);
   };
 
+  const toggleModifyUser = () => setModifyUser(!modifyUser);
+
+  const handleUpdateUser = (data) => {
+    setSelectedUser({ ...selectedUser, ...data });
+    toggleModifyUser();
+  };
+
   return (
     <Page title="User">
       {/* add fund modal */}
@@ -115,6 +125,11 @@ export default function UsersManagement() {
       {/* send email modal  */}
       <BasicModal isOpen={toggleSendUserEmail} toggleOpen={toggleSendEmail}>
         <UserOptionsCardEmail user={selectedUser} closeModal={toggleSendEmail} />
+      </BasicModal>
+
+      {/* modify user information  */}
+      <BasicModal isOpen={modifyUser} toggleOpen={toggleModifyUser}>
+        <UserOptionsCardInfo user={selectedUser} closeModal={toggleModifyUser} onUserUpdate={handleUpdateUser} />
       </BasicModal>
 
       <Container sx={{ flexShrink: 0 }}>
@@ -170,7 +185,7 @@ export default function UsersManagement() {
 
                 {selectedUser && (
                   <Stack direction={'row'} spacing={1}>
-                    <Button disabled size={'small'} variant="outlined">
+                    <Button size={'small'} variant="outlined" onClick={toggleModifyUser}>
                       Modify
                     </Button>
                     <Avatar sx={{ width: '40px', height: '40px' }} />
@@ -323,7 +338,7 @@ export default function UsersManagement() {
                       <Iconify icon="typcn:plus-outline" width={40} height={40} />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="Send Email to user">
+                  <Tooltip title="Direct call">
                     <IconButton
                       disabled={!selectedUser}
                       onClick={handleCallUser}

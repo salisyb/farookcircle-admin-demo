@@ -1,5 +1,5 @@
 import { store } from '../store';
-import { api } from './config/axios';
+import { api, datashopAPI } from './config/axios';
 
 export const getUsers = () => {
   const { token } = store.getState().auth;
@@ -23,7 +23,18 @@ export const validateUser = (username) => {
   return api.get(`/api/v1/user/validate-agent/${username}`, {}, config);
 };
 
-export const createUser = (data) => api.post('/api/v1/auth/admin/users/', data);
+export const createUser = (data) => api.post('/api/v1/admin/user', data);
+export const updateUserInfo = async (data) => {
+  const { token } = store.getState().auth;
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  return datashopAPI.post('/api/v1/admin/user', data, config);
+};
+
 export const getUser = (userId) => api.get(`/api/v1/auth/admin/users/${userId}/`);
 export const updateUser = (userId, data) => api.get(`/api/v1/auth/admin/users/${userId}/`, data);
 export const removeUser = (userId) => api.delete(`/api/v1/auth/admin/users/${userId}/`);

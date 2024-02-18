@@ -25,7 +25,7 @@ export const addNewUser = (data) => async (dispatch) => {
   }
 
   // eslint-disable-next-line no-unused-expressions
-  response.data ? toast.error('Un-able to add user please try again') : toast.error(response.problem);
+  response.data ? toast.error('Unable to add user please try again') : toast.error(response.problem);
   dispatch({ type: actionType.USER_LOADED });
   return 0;
 };
