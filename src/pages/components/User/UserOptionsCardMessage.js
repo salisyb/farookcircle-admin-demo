@@ -1,7 +1,8 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Button, CircularProgress, IconButton, Stack, TextField, Typography, styled } from '@mui/material';
 import Iconify from '../../../components/Iconify';
+import { sendUserMessage } from '../../../api/users.api';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -23,20 +24,40 @@ export default function UserOptionsCardMessage({ user, closeModal }) {
   const [show, setShow] = React.useState(false);
 
   const [isLoading, setIsLoading] = React.useState(false);
-  const [time, setTime] = React.useState('');
-  const [pin, setPin] = React.useState('');
+  const [title, setTitle] = React.useState('');
+  const [message, setMessage] = React.useState('');
 
-  const [email, setEmail] = useState('');
-  const [subject, setSubject] = useState('');
-  const [attchment, setAttchment] = useState('');
+  useEffect(() => {
+    if (title && message) {
+      setValid(true);
+    } else {
+      setValid(false);
+    }
+  }, [title, message]);
 
   const handleToggleShow = () => {
-    console.log(status);
     if (status) {
+      closeModal();
       return;
     }
 
     setShow(false);
+  };
+
+  const handleSendDirectMessage = async () => {
+    setIsLoading(true);
+    const response = await sendUserMessage({ username: user?.username, title, message });
+    if (response.ok) {
+      setStatus(true);
+      setStatusMessage('Message sent successfully');
+      setShow(true);
+    } else {
+      setStatus(false);
+      setStatusMessage('Message not sent');
+      setShow(true);
+    }
+
+    setIsLoading(false);
   };
 
   return (
@@ -93,11 +114,18 @@ export default function UserOptionsCardMessage({ user, closeModal }) {
               <TextField id="outlined-required" label="To" disabled value={user?.username} />
               <TextField
                 id="outlined-required"
+                label="Subject"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+
+              <TextField
+                id="outlined-required"
                 label="Send direct message to user"
-                value={email}
+                value={message}
                 multiline
                 rows={6}
-                onChange={(event) => setEmail(event.target.value)}
+                onChange={(event) => setMessage(event.target.value)}
               />
             </Stack>
 
@@ -106,7 +134,9 @@ export default function UserOptionsCardMessage({ user, closeModal }) {
                 <Button variant={'contained'} onClick={closeModal} sx={{ mr: '10px' }} color="error">
                   Cancel
                 </Button>
-                <Button variant={'contained'}>Send Direct Message</Button>
+                <Button disabled={!valid} onClick={handleSendDirectMessage} variant={'contained'}>
+                  Send Direct Message
+                </Button>
               </>
             </Box>
           </>

@@ -1,7 +1,8 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Button, CircularProgress, IconButton, Stack, TextField, Typography, styled } from '@mui/material';
 import Iconify from '../../../components/Iconify';
+import { sendUserEmail } from '../../../api/users.api';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -16,30 +17,48 @@ const VisuallyHiddenInput = styled('input')({
 });
 
 export default function UserOptionsCardEmail({ user, closeModal }) {
-
   const [loading, setLoading] = React.useState(false);
   const [status, setStatus] = React.useState(false);
   const [statusMessage, setStatusMessage] = React.useState();
   const [valid, setValid] = React.useState(false);
   const [show, setShow] = React.useState(false);
 
-  const type = 'Fund';
-
   const [isLoading, setIsLoading] = React.useState(false);
-  const [time, setTime] = React.useState('');
-  const [pin, setPin] = React.useState('');
-
   const [email, setEmail] = useState('');
   const [subject, setSubject] = useState('');
-  const [attchment, setAttchment] = useState('');
+  const [attachment, setAttachment] = useState(null);
+
+  useEffect(() => {
+    if (email && subject) {
+      setValid(true);
+    } else {
+      setValid(false);
+    }
+  }, [email, subject]);
 
   const handleToggleShow = () => {
-    console.log(status);
     if (status) {
+      closeModal();
       return;
     }
 
     setShow(false);
+  };
+
+  const handleSendUserEmail = async () => {
+    setIsLoading(true);
+    const response = await sendUserEmail({ username: user?.username, subject, email, attachment });
+    if (response.ok) {
+      setStatus(true);
+      setStatusMessage('Email sent successfully');
+      setShow(true);
+    } else {
+      setStatus(false);
+      setStatusMessage('Email not sent');
+      setShow(true);
+    }
+
+    setIsLoading(false);
   };
 
   return (
@@ -97,8 +116,8 @@ export default function UserOptionsCardEmail({ user, closeModal }) {
               <TextField
                 id="outlined-required"
                 label="Subject"
-                value={time}
-                onChange={(event) => setTime(event.target.value)}
+                value={subject}
+                onChange={(event) => setSubject(event.target.value)}
               />
               <TextField
                 id="outlined-required"
@@ -111,7 +130,12 @@ export default function UserOptionsCardEmail({ user, closeModal }) {
               <Stack direction={'row'} alignItems={'center'}>
                 <IconButton color="primary" aria-label="upload picture" component="label">
                   <Iconify icon="mdi:attachment" />
-                  <VisuallyHiddenInput type="file" />
+                  {/* accept only pdf or image  */}
+                  <VisuallyHiddenInput
+                    type="file"
+                    accept=".pdf, .jpg, .jpeg, .png, .gif, .doc, .docx, .xls, .xlsx .txt, .csv"
+                    onChange={(event) => setAttachment(event.target.files[0])}
+                  />
                 </IconButton>
                 <Typography variant="body2">Attach File</Typography>
               </Stack>
@@ -122,7 +146,9 @@ export default function UserOptionsCardEmail({ user, closeModal }) {
                 <Button variant={'contained'} onClick={closeModal} sx={{ mr: '10px' }} color="error">
                   Cancel
                 </Button>
-                <Button variant={'contained'}>Send Email</Button>
+                <Button disabled={!valid} variant={'contained'} onClick={handleSendUserEmail}>
+                  Send Email
+                </Button>
               </>
             </Box>
           </>

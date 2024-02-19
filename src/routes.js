@@ -13,6 +13,7 @@ import NotFound from './pages/Page404';
 import TicketList from './pages/TicketList';
 import TicketMessages from './pages/TicketMessage';
 import UsersManagement from './pages/UsersManagement';
+import Transactions from './pages/Transaction';
 
 // ----------------------------------------------------------------------
 
@@ -28,6 +29,7 @@ export default function Router() {
         { path: 'users', element: isAuthenticated ? <UsersManagement /> : <Navigate to="/login" /> },
         { path: 'tickets', element: isAuthenticated ? <TicketList /> : <Navigate to="/login" /> },
         { path: 'tickets/message', element: isAuthenticated ? <TicketMessages /> : <Navigate to="/login" /> },
+        { path: 'transactions', element: isAuthenticated ? <Transactions /> : <Navigate to="/login" /> },
       ],
     },
     {

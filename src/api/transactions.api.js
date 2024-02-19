@@ -1,8 +1,8 @@
-import { api, apiExternal } from './config/axios';
+import { api, datashopAPI } from './config/axios';
 import { store } from '../store';
 
 
-export const getTransactionsHistory = async () => {
+export const getTransactionsHistory = async (query) => {
     const { token } = store.getState().auth;
   
     const config = {
@@ -10,7 +10,7 @@ export const getTransactionsHistory = async () => {
         Authorization: `Bearer ${token}`,
       },
     };
-    return api.get('/api/v1/admin/transaction', {}, config);
+    return datashopAPI.get('/api/v1/admin/transactions', query, config);
   };
 
 

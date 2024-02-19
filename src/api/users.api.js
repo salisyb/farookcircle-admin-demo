@@ -128,3 +128,25 @@ export const agentFundUserWallet = (payload = {}) => {
   };
   return api.post('/api/v1/deposit', payload, config);
 };
+
+export const sendUserMessage = (payload) => {
+  const { token } = store.getState().auth;
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  return datashopAPI.post('/api/v1/admin/message', payload, config);
+};
+
+export const sendUserEmail = (payload) => {
+  const { token } = store.getState().auth;
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  return datashopAPI.post('/api/v1/admin/email', payload, config);
+};

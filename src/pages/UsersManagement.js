@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable camelcase */
 import React, { useState } from 'react';
 // material
@@ -24,7 +25,11 @@ import {
 import { toast } from 'react-toastify';
 import moment from 'moment-timezone';
 import { useNavigate } from 'react-router-dom';
-import { getTicketByUser } from '../api/system.api';
+import { v4 as uuidv4 } from 'uuid';
+import { useFormik } from 'formik';
+import { useSelector } from 'react-redux';
+import { LoadingButton } from '@mui/lab';
+import { createTicket, getTicketByUser } from '../api/system.api';
 import Iconify from '../components/Iconify';
 import Page from '../components/Page';
 import { validateUser } from '../api/users.api';
@@ -33,6 +38,7 @@ import UserOptionsCard from './components/User/UserOptionsCard';
 import UserOptionsCardMessage from './components/User/UserOptionsCardMessage';
 import UserOptionsCardEmail from './components/User/UserOptionsCardEmail';
 import UserOptionsCardInfo from './components/User/UserOptionsCardInfo';
+import ModalC from './components/CModal';
 
 export default function UsersManagement() {
   const navigate = useNavigate();
@@ -46,7 +52,14 @@ export default function UsersManagement() {
   const [toggleSendUserEmail, setToggleSendUserEmail] = React.useState(false);
   const [firstTime, setFirstTime] = useState(true);
 
+  const [selectedFile, setSelectedFile] = React.useState(null);
+  const [toggleCreateTicket, setToggleCreateTicket] = useState(false);
+
+  const [createTicketLoading, setCreateTicketLoading] = useState(false);
+
   const [modifyUser, setModifyUser] = React.useState(false);
+
+  const { user } = useSelector((state) => state.auth);
 
   const handleSearch = async () => {
     setSelectedUser(null);
@@ -83,6 +96,9 @@ export default function UsersManagement() {
 
   const handleViewTicket = (ticketId) => navigate(`/dashboard/tickets/message?ticketId=${ticketId}`);
   const navigateUserTicketScreen = () => navigate(`/dashboard/tickets?user=${selectedUser?.username}`);
+  const navigateUserTransactionScreen = () => navigate(`/dashboard/transactions?user=${selectedUser?.username}`);
+
+  
 
   const handleCallUser = () => {
     window.open(`tel:${selectedUser?.username}`, '_blank');
@@ -103,6 +119,66 @@ export default function UsersManagement() {
   const handleUpdateUser = (data) => {
     setSelectedUser({ ...selectedUser, ...data });
     toggleModifyUser();
+  };
+
+  const formik = useFormik({
+    initialValues: {
+      title: '',
+      descriptions: '',
+    },
+    onSubmit: (values) => {
+      handleCreateUserTicket(values);
+    },
+    validate: (values) => {
+      const errors = {};
+
+      if (!values.title.trim()) {
+        errors.title = 'Title is required';
+      }
+      if (!values.descriptions.trim()) {
+        errors.descriptions = 'Descriptions are required';
+      }
+      return errors;
+    },
+  });
+
+  const handleCreateUserTicket = async (data) => {
+    const formData = new FormData();
+    const reference = uuidv4();
+    const user_id = selectedUser?.username;
+    formData.append('title', data.title);
+    formData.append('descriptions', data.descriptions);
+    formData.append('user_id', user_id);
+    formData.append('reference', reference);
+    formData.append('attended_by', user?.alias);
+    formData.append('created_by', user?.alias);
+
+    if (selectedFile) {
+      formData.append('attachment', selectedFile);
+    }
+
+    setCreateTicketLoading(true);
+
+    const request = await createTicket(formData);
+    if (request.ok) {
+      toast.success('You have successfully create new ticket');
+      await handleGetTicket();
+      setCreateTicketLoading(false);
+      setToggleCreateTicket(false);
+      return;
+    }
+
+    setCreateTicketLoading(false);
+    toast.error(request.data?.message ? request.data?.message : 'Unable to create your ticket');
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    setSelectedFile(file);
   };
 
   return (
@@ -131,6 +207,96 @@ export default function UsersManagement() {
       <BasicModal isOpen={modifyUser} toggleOpen={toggleModifyUser}>
         <UserOptionsCardInfo user={selectedUser} closeModal={toggleModifyUser} onUserUpdate={handleUpdateUser} />
       </BasicModal>
+
+      {/* create user new tickets  */}
+      <ModalC
+        isOpen={toggleCreateTicket}
+        setOpen={() => {
+          setToggleCreateTicket(!toggleCreateTicket);
+        }}
+      >
+        <form onSubmit={formik.handleSubmit}>
+          <Stack spacing={2}>
+            <Stack alignItems={'flex-end'}>
+              <IconButton onClick={() => setToggleCreateTicket(!toggleCreateTicket)}>
+                <Iconify icon={'eva:close-outline'} width={'20px'} height={'20px'} />
+              </IconButton>
+            </Stack>
+            <FormControl>
+              <TextField
+                id="outlined-basic"
+                label="Ticket Title"
+                variant="outlined"
+                name={'title'}
+                value={formik.values.title}
+                onChange={formik.handleChange}
+                error={formik.touched.title && Boolean(formik.errors.title)}
+                helperText={formik.touched.title && formik.errors.title}
+              />
+            </FormControl>
+
+            <FormControl>
+              <TextField
+                id="outlined-multiline-static"
+                label="Ticket Descriptions"
+                multiline
+                rows={4}
+                name={'descriptions'}
+                value={formik.values.descriptions}
+                onChange={formik.handleChange}
+                error={formik.touched.descriptions && Boolean(formik.errors.descriptions)}
+                helperText={formik.touched.descriptions && formik.errors.descriptions}
+              />
+            </FormControl>
+
+            {/* File Input for Attachment */}
+            <input
+              type="file"
+              accept="image/*, application/pdf"
+              style={{ display: 'none' }}
+              id="attachmentInput"
+              onChange={handleFileChange}
+            />
+            <label htmlFor="attachmentInput">
+              <LoadingButton variant="contained" component="span">
+                Attach File
+              </LoadingButton>
+            </label>
+
+            {/* Display Attachment Preview */}
+            {selectedFile && (
+              <Stack alignItems={'flex-start'}>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  Attachment Preview:
+                </Typography>
+                {selectedFile.type.startsWith('image/') ? (
+                  <>
+                    <IconButton onClick={handleRemoveFile} size="small">
+                      <Iconify icon={'eva:close-outline'} width={'30px'} height={'30px'} />
+                    </IconButton>
+                    <img
+                      src={URL.createObjectURL(selectedFile)}
+                      alt="Attachment Preview"
+                      style={{ width: '100px', height: '100px' }}
+                    />
+                  </>
+                ) : (
+                  <Typography>Attachment type: {selectedFile.type}</Typography>
+                )}
+              </Stack>
+            )}
+
+            <LoadingButton
+              disabled={createTicketLoading}
+              loading={createTicketLoading}
+              type="submit"
+              variant="contained"
+            >
+              Create Ticket
+            </LoadingButton>
+          </Stack>
+        </form>
+      </ModalC>
 
       <Container sx={{ flexShrink: 0 }}>
         <Card sx={{ flexGrow: 1, width: '100%', padding: '20px', minHeight: '80vh' }}>
@@ -386,7 +552,8 @@ export default function UsersManagement() {
                     variant="outlined"
                     fullWidth
                     color="primary"
-                    disabled
+                    onClick={navigateUserTransactionScreen}
+                    disabled={!selectedUser}
                   >
                     Transaction
                   </Button>
@@ -421,30 +588,17 @@ export default function UsersManagement() {
               <Stack direction="column" spacing={1}>
                 <Stack direction="row" justifyContent="space-between">
                   <Typography variant="h6">Tickets</Typography>
-                  <Button disabled size={'small'} variant="outlined" endIcon={<Iconify icon="mdi:plus" />}>
-                    New Ticket
-                  </Button>
+                  {selectedUser && (
+                    <Button
+                      size={'small'}
+                      variant="outlined"
+                      endIcon={<Iconify icon="mdi:plus" />}
+                      onClick={() => setToggleCreateTicket(!toggleCreateTicket)}
+                    >
+                      New Ticket
+                    </Button>
+                  )}
                 </Stack>
-                {/* <Paper
-                  component="form"
-                  sx={{
-                    p: '2px 4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: '1px solid #ADC8FF',
-                    width: '100%',
-                  }}
-                >
-                  <InputBase
-                    sx={{ ml: 1, flex: 1 }}
-                    placeholder="Search For Tickets"
-                    inputProps={{ 'aria-label': 'search for tickets' }}
-                  />
-                  <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-                  <IconButton color="primary" sx={{ p: '10px' }} aria-label="directions">
-                    <Iconify icon="mdi:search" />
-                  </IconButton>
-                </Paper> */}
               </Stack>
 
               {/* ticket list  */}

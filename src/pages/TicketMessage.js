@@ -35,6 +35,7 @@ export default function TicketMessages() {
   const { user } = useSelector((state) => state.auth);
   const location = useLocation();
 
+
   // Accessing query parameters from location object
   const queryParams = new URLSearchParams(location.search);
   const ticketId = queryParams.get('ticketId');
@@ -195,6 +196,10 @@ export default function TicketMessages() {
   useEffect(() => {
     handleUpdateLastViewTicket();
   }, [handleUpdateLastViewTicket, ticketMessages.length]);
+
+  const handleGoBack = () => {
+    navigate(-1);
+  };
 
   return (
     <>
@@ -380,7 +385,7 @@ export default function TicketMessages() {
           <Container sx={{ overflow: 'hidden' }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               <Stack direction={'row'} alignItems={'center'} spacing={1}>
-                <Button onClick={() => navigate('/dashboard/tickets')} variant={'contained'}>
+                <Button onClick={handleGoBack} variant={'contained'}>
                   <Iconify icon="eva:arrow-back-outline" width={20} height={20} />
                 </Button>
                 <Typography variant="h4" gutterBottom>
