@@ -40,6 +40,8 @@ import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashbo
 import BasicModal from './components/Modal';
 import UserOptionsCard from './components/User/UserOptionsCard';
 import BasicPopover from './components/PopoverModal';
+import FundingListHead from '../sections/@dashboard/user/FundingListHead';
+import FundingListToolbar from '../sections/@dashboard/user/FundingListToolbar';
 
 // ----------------------------------------------------------------------
 
@@ -50,6 +52,9 @@ const TABLE_HEAD = [
   { id: 'agent', label: 'Agent', alignRight: false },
   { id: 'amount', label: 'Amount', alignRight: false },
   { id: 'transaction_ref', label: 'Reference', alignRight: false },
+  { id: 'funded_by', label: 'Funded By', alignRight: false },
+  { id: 'bal_before', label: 'Balance Before', alignRight: false },
+  { id: 'bal_after', label: 'Balance After', alignRight: false },
   { id: 'date', label: 'Date', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
   { id: '' },
@@ -250,7 +255,7 @@ export default function Funding() {
             </Typography>
           </Stack>
           <Card>
-            <UserListToolbar
+            <FundingListToolbar
               numSelected={selected.length}
               filterName={filterName}
               onFilterName={handleFilterByName}
@@ -259,9 +264,9 @@ export default function Funding() {
             />
 
             <Scrollbar>
-              <TableContainer sx={{ minWidth: 800 }}>
+              <TableContainer sx={{ width: 1300 }}>
                 <Table>
-                  <UserListHead
+                  <FundingListHead
                     order={order}
                     orderBy={orderBy}
                     headLabel={TABLE_HEAD}
@@ -271,7 +276,8 @@ export default function Funding() {
                   />
                   <TableBody>
                     {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                      const { id, agent, amount, transaction_ref, date, status } = row;
+                      const { id, agent, amount, bal_before, bal_after, funded_by, transaction_ref, date, status } =
+                        row;
                       const isItemSelected = selected.indexOf(id) !== -1;
 
                       return (
@@ -295,6 +301,9 @@ export default function Funding() {
                           </TableCell>
                           <TableCell align="left">{amount}</TableCell>
                           <TableCell align="left">{transaction_ref}</TableCell>
+                          <TableCell align="left">{funded_by}</TableCell>
+                          <TableCell align="left">{bal_before}</TableCell>
+                          <TableCell align="left">{bal_after}</TableCell>
                           <TableCell align="left">{new Date(date).toISOString().split('T')[0]}</TableCell>
                           <TableCell align="left">
                             <Label
