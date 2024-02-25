@@ -14,6 +14,7 @@ import TicketList from './pages/TicketList';
 import TicketMessages from './pages/TicketMessage';
 import UsersManagement from './pages/UsersManagement';
 import Transactions from './pages/Transaction';
+import Funding from './pages/Funding';
 
 // ----------------------------------------------------------------------
 
@@ -26,6 +27,7 @@ export default function Router() {
       element: isAuthenticated ? <DashboardLayout /> : <Navigate to="/login" />,
       children: [
         { path: 'app', element: isAuthenticated ? <User /> : <Navigate to="/login" /> },
+        { path: 'funding', element: isAuthenticated ? <Funding /> : <Navigate to="/login" /> },
         { path: 'users', element: isAuthenticated ? <UsersManagement /> : <Navigate to="/login" /> },
         { path: 'tickets', element: isAuthenticated ? <TicketList /> : <Navigate to="/login" /> },
         { path: 'tickets/message', element: isAuthenticated ? <TicketMessages /> : <Navigate to="/login" /> },

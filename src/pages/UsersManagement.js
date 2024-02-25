@@ -51,6 +51,7 @@ export default function UsersManagement() {
   const [toggleSendUserMessage, setToggleSendUserMessage] = React.useState(false);
   const [toggleSendUserEmail, setToggleSendUserEmail] = React.useState(false);
   const [firstTime, setFirstTime] = useState(true);
+  const [ticketLoading, setTicketLoading] = useState(false);
 
   const [selectedFile, setSelectedFile] = React.useState(null);
   const [toggleCreateTicket, setToggleCreateTicket] = useState(false);
@@ -88,17 +89,17 @@ export default function UsersManagement() {
   };
 
   const handleGetTicket = async () => {
+    setTicketLoading(true);
     const response = await getTicketByUser(search);
     if (response.ok) {
       setTickets(response.data?.filter((ticket) => ticket.is_closed === false));
     }
+    setTicketLoading(false);
   };
 
   const handleViewTicket = (ticketId) => navigate(`/dashboard/tickets/message?ticketId=${ticketId}`);
   const navigateUserTicketScreen = () => navigate(`/dashboard/tickets?user=${selectedUser?.username}`);
   const navigateUserTransactionScreen = () => navigate(`/dashboard/transactions?user=${selectedUser?.username}`);
-
-  
 
   const handleCallUser = () => {
     window.open(`tel:${selectedUser?.username}`, '_blank');
@@ -159,10 +160,11 @@ export default function UsersManagement() {
 
     setCreateTicketLoading(true);
 
+    handleGetTicket();
     const request = await createTicket(formData);
+
     if (request.ok) {
       toast.success('You have successfully create new ticket');
-      await handleGetTicket();
       setCreateTicketLoading(false);
       setToggleCreateTicket(false);
       return;
@@ -351,9 +353,16 @@ export default function UsersManagement() {
 
                 {selectedUser && (
                   <Stack direction={'row'} spacing={1}>
-                    <Button size={'small'} variant="outlined" onClick={toggleModifyUser}>
-                      Modify
-                    </Button>
+                    {user?.isSuperUser && (
+                      <Button
+                        size={'small'}
+                        variant="text"
+                        startIcon={<Iconify icon={'iconoir:edit'} />}
+                        onClick={toggleModifyUser}
+                      >
+                        Modify
+                      </Button>
+                    )}
                     <Avatar sx={{ width: '40px', height: '40px' }} />
                   </Stack>
                 )}
@@ -603,6 +612,23 @@ export default function UsersManagement() {
 
               {/* ticket list  */}
               <Stack direction="column" sx={{ overflow: 'scroll', height: 'calc(80vh - 40px)' }}>
+                {selectedUser && !ticketLoading && !tickets.length && (
+                  <Typography variant="body2" sx={{ mt: '10px', textAlign: 'center' }}>
+                    No ticket found
+                  </Typography>
+                )}
+                {ticketLoading && (
+                  <Stack
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      height: '100px',
+                    }}
+                  >
+                    <CircularProgress size={32} />
+                  </Stack>
+                )}
                 {tickets.map((ticket) => (
                   <Stack
                     onClick={() => handleViewTicket(ticket.id)}

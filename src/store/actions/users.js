@@ -77,10 +77,21 @@ export const getUsersWallet = () => async (dispatch) => {
 
 export const getTransactionsAgent = (query) => async (dispatch) => {
   dispatch({ type: actionType.USER_LOADING });
-  const response = await api.getListOfTransactins(query);
+  const response = await api.getListOfTransactions(query);
 
   if (response.ok) {
     return dispatch({ type: actionType.GET_TRANSACTIONS, payload: response.data });
+  }
+
+  return true;
+};
+
+export const getStaffAccountData = (query) => async (dispatch) => {
+  dispatch({ type: actionType.USER_LOADING });
+  const response = await api.getStaffAccount(query);
+
+  if (response.ok) {
+    return dispatch({ type: actionType.GET_STAFF_ACCOUNT, payload: response.data });
   }
 
   return true;

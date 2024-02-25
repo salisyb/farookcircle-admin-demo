@@ -35,6 +35,17 @@ export const updateUserInfo = async (data) => {
   return datashopAPI.post('/api/v1/admin/user', data, config);
 };
 
+export const updateUserPassword = async (data) => {
+  const { token } = store.getState().auth;
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  return datashopAPI.post('/api/v1/admin/user-password-reset', data, config);
+};
+
 export const getUser = (userId) => api.get(`/api/v1/auth/admin/users/${userId}/`);
 export const updateUser = (userId, data) => api.get(`/api/v1/auth/admin/users/${userId}/`, data);
 export const removeUser = (userId) => api.delete(`/api/v1/auth/admin/users/${userId}/`);
@@ -107,7 +118,18 @@ export const deleteNotification = (notifyId) => {
 
 // staff dashobard
 
-export const getListOfTransactins = (query = {}) => {
+export const getStaffAccount = (query = {}) => {
+  const { token } = store.getState().auth;
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  return api.get('/api/v1/account', query, config);
+};
+
+export const getListOfTransactions = (query = {}) => {
   const { token } = store.getState().auth;
 
   const config = {

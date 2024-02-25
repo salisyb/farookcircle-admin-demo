@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Box, Button, CircularProgress, IconButton, Stack, TextField, Typography, styled } from '@mui/material';
 import Iconify from '../../../components/Iconify';
-import { updateUserInfo } from '../../../api/users.api';
+import { updateUserInfo, updateUserPassword } from '../../../api/users.api';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -28,12 +28,16 @@ export default function UserOptionsCardInfo({ user, closeModal, onUserUpdate }) 
   const [email, setEmail] = useState(user?.email);
   const [firstName, setFirstName] = useState(user?.first_name);
   const [lastName, setLastName] = useState(user?.last_name);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const [resetPassword, setResetPassword] = useState(false);
+  const [editInfo, setEditInfo] = useState(false);
 
   const handleToggleShow = () => {
-   
     if (status) {
       setShow(false);
-      onUserUpdate({ email, first_name: firstName, last_name: lastName});
+      onUserUpdate({ email, first_name: firstName, last_name: lastName });
       return;
     }
 
@@ -49,7 +53,6 @@ export default function UserOptionsCardInfo({ user, closeModal, onUserUpdate }) 
       last_name: lastName,
     };
 
-
     const response = await updateUserInfo(data);
 
     if (response.ok) {
@@ -63,6 +66,60 @@ export default function UserOptionsCardInfo({ user, closeModal, onUserUpdate }) 
     }
 
     setIsLoading(false);
+  };
+
+  const handleBack = () => {
+    if (resetPassword) {
+      setResetPassword(false);
+      return;
+    }
+
+    if (editInfo) {
+      setEditInfo(false);
+      return;
+    }
+
+    closeModal();
+  };
+
+  const handleResetPassword = async () => {
+    setIsLoading(true);
+    const data = {
+      username: user?.username,
+      password: newPassword,
+    };
+
+    const response = await updateUserPassword(data);
+
+    if (response.ok) {
+      setStatus(true);
+      setStatusMessage('User Password updated successfully');
+      setShow(true);
+    } else {
+      setStatus(false);
+      setStatusMessage('User Password failed to update');
+      setShow(true);
+    }
+
+    setIsLoading(false);
+  };
+
+  const handleSubmitReset = () => {
+    if (!resetPassword) {
+      setResetPassword(true);
+      return;
+    }
+
+    handleResetPassword();
+  };
+
+  const handleSubmitInfo = () => {
+    if (!editInfo) {
+      setEditInfo(true);
+      return;
+    }
+
+    handleSubmit();
   };
 
   return (
@@ -125,6 +182,7 @@ export default function UserOptionsCardInfo({ user, closeModal, onUserUpdate }) 
                 id="outlined-required"
                 label="First name"
                 value={firstName}
+                disabled={!editInfo}
                 type="text"
                 required
                 onChange={(event) => setFirstName(event.target.value)}
@@ -133,6 +191,7 @@ export default function UserOptionsCardInfo({ user, closeModal, onUserUpdate }) 
                 id="outlined-required"
                 label="Last name"
                 type="text"
+                disabled={!editInfo}
                 required
                 value={lastName}
                 onChange={(event) => setLastName(event.target.value)}
@@ -141,20 +200,37 @@ export default function UserOptionsCardInfo({ user, closeModal, onUserUpdate }) 
                 id="outlined-required"
                 label="Email Address"
                 type="email"
+                disabled={!editInfo}
                 required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
+              />
+              <TextField
+                id="outlined-required"
+                label="Password"
+                type="text"
+                disabled={!resetPassword}
+                required
+                value={!resetPassword ? '********' : newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
               />
             </Stack>
 
             <Box sx={{ mt: '20px' }}>
               <>
-                <Button variant={'contained'} onClick={closeModal} sx={{ mr: '10px' }} color="error">
+                <Button variant={'contained'} onClick={handleBack} sx={{ mx: '5px' }} color="error">
                   Cancel
                 </Button>
-                <Button onClick={handleSubmit} variant={'contained'}>
-                  Modify
-                </Button>
+                {!resetPassword && (
+                  <Button onClick={handleSubmitInfo} variant={'contained'} sx={{ mx: '5px' }}>
+                    {!editInfo ? 'Modify' : 'Submit'}
+                  </Button>
+                )}
+                {!editInfo && (
+                  <Button onClick={handleSubmitReset} sx={{ mx: '5px' }} variant={'contained'}>
+                    Reset Password
+                  </Button>
+                )}
               </>
             </Box>
           </>

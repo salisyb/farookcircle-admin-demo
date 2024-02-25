@@ -39,7 +39,14 @@ UserListToolbar.propTypes = {
   onApplyFilter: PropTypes.func,
 };
 
-export default function UserListToolbar({ numSelected, filterName, onFilterName, toggleFilter, totalAmount, onApplyFilter }) {
+export default function UserListToolbar({
+  numSelected,
+  filterName,
+  onFilterName,
+  toggleFilter,
+  totalAmount,
+  onApplyFilter,
+}) {
   return (
     <RootStyle
       sx={{
@@ -49,36 +56,16 @@ export default function UserListToolbar({ numSelected, filterName, onFilterName,
         }),
       }}
     >
-      {/* {numSelected > 0 ? (
-        <Typography component="div" variant="subtitle1">
-          {numSelected} selected
-        </Typography>
-      ) : (
-        <SearchStyle
-          value={filterName}
-          onChange={onFilterName}
-          placeholder="Search user..."
-          startAdornment={
-            <InputAdornment position="start">
-              <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled', width: 20, height: 20 }} />
-            </InputAdornment>
-          }
-        />
-      )} */}
       <Stack direction={'column'}>
-        <Typography variant='h6' sx={{fontWeight: '200', color: 'gray'}}>Total Amount</Typography>
-        <Typography variant='h2' sx={{fontWeight: '200'}}>₦ {new Intl.NumberFormat().format(totalAmount) || '0.00'}</Typography>
+        <Typography variant="h6" sx={{ fontWeight: '200', color: 'gray' }}>
+          Current Balance
+        </Typography>
+        <Typography variant="h2" sx={{ fontWeight: '200' }}>
+          ₦ {new Intl.NumberFormat().format(totalAmount) || '0.00'}
+        </Typography>
       </Stack>
 
-      {/* <Stack direction={'row'} spacing={'4px'} sx={{ borderWidth: '2px', borderColor: 'green', alignItems: 'center' }}>
-        <Tooltip title="Filter list">
-          <IconButton onClick={() => console.log('Hello world')}>
-            <Iconify icon="ic:round-filter-list" />
-          </IconButton>
-        </Tooltip>
-        <Typography>Filter</Typography>
-      </Stack> */}
-      <BasicPopover onApplyFilter={onApplyFilter} />
+      {/* <BasicPopover onApplyFilter={onApplyFilter} /> */}
     </RootStyle>
   );
 }

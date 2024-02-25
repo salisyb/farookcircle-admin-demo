@@ -12,6 +12,11 @@ const navConfig = [
     icon: getIcon('material-symbols:dashboard'),
   },
   {
+    title: 'funding history',
+    path: '/dashboard/funding',
+    icon: getIcon('material-symbols:history'),
+  },
+  {
     title: 'Users',
     path: '/dashboard/users',
     icon: getIcon('ph:users-fill'),

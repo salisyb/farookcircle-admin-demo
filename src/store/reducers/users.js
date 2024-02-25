@@ -6,6 +6,9 @@ const initialState = {
   usersWallet: [],
   transactions: [],
   walletSum: 0,
+  currentBalance: 0,
+  owner: '',
+  history: [],
   isLoading: false,
   added: false,
 };
@@ -20,6 +23,14 @@ export default function usersReducer(state = initialState, action) {
     case actionType.USER_LOADED:
       return {
         ...state,
+        isLoading: false,
+      };
+    case actionType.GET_STAFF_ACCOUNT:
+      return {
+        ...state,
+        currentBalance: action.payload.currentBalance,
+        owner: action.payload.owner,
+        history: action.payload.history,
         isLoading: false,
       };
     case actionType.GET_USERS:
@@ -47,18 +58,18 @@ export default function usersReducer(state = initialState, action) {
         isLoading: false,
         added: true,
       };
-      case actionType.GET_TRANSACTIONS:
-        return {
-          ...state,
-          transactions: action.payload
-        }
-      case actionType.GET_USERS_WALLET:
-        return {
-          ...state,
-          usersWallet: action.payload.wallets,
-          walletSum: action.payload.walletSum,
-          isLoading: false,
-        };
+    case actionType.GET_TRANSACTIONS:
+      return {
+        ...state,
+        transactions: action.payload,
+      };
+    case actionType.GET_USERS_WALLET:
+      return {
+        ...state,
+        usersWallet: action.payload.wallets,
+        walletSum: action.payload.walletSum,
+        isLoading: false,
+      };
     default:
       return state;
   }

@@ -23,19 +23,12 @@ import {
   CircularProgress,
 } from '@mui/material';
 
-import moment from 'moment-timezone';
 import { USER_UPDATE } from '../store/constants/auth';
 import { getUserInfo } from '../api/auth.api';
 import { getListOfTransactions } from '../api/users.api';
 
 // components
-import {
-  getStaffAccountData,
-  getTransactionsAgent,
-  getUsers,
-  getUsersWallet,
-  removeUser,
-} from '../store/actions/users';
+import { getTransactionsAgent, getUsers, getUsersWallet, removeUser } from '../store/actions/users';
 import Page from '../components/Page';
 import Label from '../components/Label';
 import Scrollbar from '../components/Scrollbar';
@@ -54,11 +47,11 @@ import BasicPopover from './components/PopoverModal';
 const avatar = '/static/mock-images/avatars/avatar_default.jpg';
 
 const TABLE_HEAD = [
-  { id: 'owner', label: 'Owner', alignRight: false },
+  { id: 'agent', label: 'Agent', alignRight: false },
   { id: 'amount', label: 'Amount', alignRight: false },
-  { id: 'description', label: 'Description', alignRight: false },
+  { id: 'transaction_ref', label: 'Reference', alignRight: false },
   { id: 'date', label: 'Date', alignRight: false },
-  { id: 'direction', label: 'Direction', alignRight: false },
+  { id: 'status', label: 'Status', alignRight: false },
   { id: '' },
 ];
 // date: '2023-04-25T18:33:05.615Z',
@@ -101,12 +94,12 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function User() {
+export default function Funding() {
   const dispatch = useDispatch();
 
-  const { transactions, history, currentBalance, owner } = useSelector((state) => state.users);
+  const { transactions } = useSelector((state) => state.users);
 
-  const [filterTransaction, setFilterTransaction] = React.useState(history);
+  const [filterTransaction, setFilterTransaction] = React.useState(transactions);
 
   const [page, setPage] = React.useState(0);
 
@@ -174,6 +167,15 @@ export default function User() {
   const [userClickId, setUserClickId] = React.useState(null);
   const [isLoading, setIsLoading] = React.useState(false);
 
+  const totalAmount = calculateAmount();
+
+  function calculateAmount() {
+    let amount = 0;
+    filterTransaction.forEach((transaction) => {
+      amount += Number(transaction.amount);
+    });
+    return amount;
+  }
   const toggleModal = () => setUserClicked(!userClicked);
 
   const handleClickUser = (id) => {
@@ -182,13 +184,13 @@ export default function User() {
   };
 
   React.useEffect(() => {
-    dispatch(getStaffAccountData());
     dispatch(getTransactionsAgent({ date: new Date().toISOString().split('T')[0] }));
+
     handleGetUserData();
   }, []);
 
   React.useEffect(() => {
-    setFilterTransaction(history);
+    setFilterTransaction(transactions);
   }, [transactions]);
 
   const handleFilterTransactions = async (queryFilter) => {
@@ -222,7 +224,7 @@ export default function User() {
   };
 
   return (
-    <Page title="Staff">
+    <Page title="Funding">
       <>
         {isLoading && (
           <Box
@@ -242,21 +244,17 @@ export default function User() {
         )}
 
         <Container>
-          <Stack px={'10px'} mb={2}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
             <Typography variant="h4" gutterBottom>
-              Account Information
+              Funding
             </Typography>
-            <Stack direction={'row'} spacing={1}>
-              <Typography>Account Name:</Typography>
-              <Typography sx={{fontWeight: '700'}} color={'#3366FF'}>{owner}</Typography>
-            </Stack>
           </Stack>
-          <Card style={{ paddingBlock: '10px' }}>
+          <Card>
             <UserListToolbar
               numSelected={selected.length}
               filterName={filterName}
               onFilterName={handleFilterByName}
-              totalAmount={Number(currentBalance)}
+              totalAmount={totalAmount}
               onApplyFilter={handleApplyFilter}
             />
 
@@ -273,15 +271,15 @@ export default function User() {
                   />
                   <TableBody>
                     {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                      const { _id, owner, amount, direction, description, createdAt, updatedAt } = row;
-                      const isItemSelected = selected.indexOf(_id) !== -1;
+                      const { id, agent, amount, transaction_ref, date, status } = row;
+                      const isItemSelected = selected.indexOf(id) !== -1;
 
                       return (
                         <TableRow
                           hover
-                          key={_id}
+                          key={id}
                           tabIndex={-1}
-                          onClick={() => handleClickUser(_id)}
+                          onClick={() => handleClickUser(id)}
                           sx={{ cursor: 'pointer' }}
                         >
                           <TableCell padding="checkbox">
@@ -291,20 +289,31 @@ export default function User() {
                             <Stack direction="row" alignItems="center" spacing={2}>
                               {/* <Avatar alt={agent} src={avatar} /> */}
                               <Typography variant="subtitle2" noWrap>
-                                {`${owner}`}
+                                {`${agent}`}
                               </Typography>
                             </Stack>
                           </TableCell>
                           <TableCell align="left">{amount}</TableCell>
-                          <TableCell align="left">{description}</TableCell>
-                          <TableCell align="left">{moment(createdAt).format('MMM Do YYYY, h:mm:ss')}</TableCell>
+                          <TableCell align="left">{transaction_ref}</TableCell>
+                          <TableCell align="left">{new Date(date).toISOString().split('T')[0]}</TableCell>
                           <TableCell align="left">
-                            <Label variant="ghost" color={direction !== 'DEBIT' ? 'success' : 'error'}>
-                              {direction}
+                            <Label
+                              variant="ghost"
+                              color={
+                                status.toLowerCase() === 'completed' || status.toLowerCase() === 'successful'
+                                  ? 'success'
+                                  : 'error'
+                              }
+                            >
+                              {sentenceCase(status)}
                             </Label>
                           </TableCell>
 
-                          <TableCell align="right">{/*  */}</TableCell>
+                          <TableCell align="right">
+                            {/* <UserMoreMenu
+                            onOption={(option) => (option === 'remove' ? handleRemoveUser(id) : handleEditUser(id))}
+                          /> */}
+                          </TableCell>
                         </TableRow>
                       );
                     })}
