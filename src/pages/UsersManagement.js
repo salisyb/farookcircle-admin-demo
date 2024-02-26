@@ -160,8 +160,8 @@ export default function UsersManagement() {
 
     setCreateTicketLoading(true);
 
-    handleGetTicket();
     const request = await createTicket(formData);
+    handleGetTicket();
 
     if (request.ok) {
       toast.success('You have successfully create new ticket');

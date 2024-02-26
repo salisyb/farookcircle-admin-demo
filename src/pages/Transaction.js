@@ -77,8 +77,8 @@ const Transactions = () => {
     };
 
     if (value[0] && value[1]) {
-      filterOptions.startDate = value[0];
-      filterOptions.endDate = value[1];
+      filterOptions.startDate = moment(value[0]?.toString()).format('YYYY-MM-DD');
+      filterOptions.endDate = moment(value[1]?.toString()).format('YYYY-MM-DD');
     }
 
     if (filterUserId) {
@@ -133,9 +133,9 @@ const Transactions = () => {
 
   const handleRefundUser = async () => {
     setRefunding(true);
-    refundingLoading(true);
+    setRefundingLoading(true);
 
-    const response = await refundUser(selected.transaction_ref);
+    const response = await refundUser(selected?.transaction_ref);
 
     if (response.ok) {
       setStatusMessage(response.data?.message);
@@ -156,28 +156,32 @@ const Transactions = () => {
     toggleModal();
   };
 
+  console.log(selected);
+
   return (
     <>
       <ModalC isOpen={showModal} setOpen={toggleModal}>
         <Stack sx={{ cursor: 'pointer' }} direction={'row'} alignItems={'center'} justifyContent="space-between">
           <Typography>Transaction</Typography>
-          {user?.isSuperUser && selected?.transaction_type?.includes('PURCHASE') && selected?.status !== 'failed' && (
-            <Button onClick={() => {}} disabled={refunding}>
-              Refund
-            </Button>
-          )}
+          {user?.isSuperUser &&
+            selected?.transaction_type?.includes('PURCHASE') &&
+            selected?.status?.toLowerCase() !== 'failed' && (
+              <Button onClick={handleRefundUser} disabled={refunding}>
+                Refund
+              </Button>
+            )}
         </Stack>
 
         {refunding && (
           <Stack direction={'column'} alignItems={'center'} justifyContent={'center'}>
             {refundingLoading ? (
               <>
-                <CircularProgress />
+                <CircularProgress sx={{my: '10px'}} />
                 <Typography>Refunding Transaction...</Typography>
               </>
             ) : (
               <>
-                <Typography>{statusMessage}</Typography>
+                <Typography my={"10px"}>{statusMessage}</Typography>
                 <Button onClick={handleCloseModal}>OK</Button>
               </>
             )}
@@ -255,26 +259,6 @@ const Transactions = () => {
                   )}
                 />
               </LocalizationProvider>
-              {/* <FormControl variant="outlined" sx={{ minWidth: 200, mb: '20px' }}>
-                <InputLabel id="transaction-type-label">Transaction Type</InputLabel>
-                <Select
-                  labelId="transaction-type-label"
-                  id="transaction-type-select"
-                  value={filterTransactionType}
-                  label="Transaction Type"
-                  onChange={(event) => setFilterTransactionType(event.target.value)}
-                >
-                  <MenuItem value="">All</MenuItem>
-                  <MenuItem value="WALLET_FUNDING">Wallet Funding</MenuItem>
-                  <MenuItem value="ADMIN_WALLET_FUNDING">Admin Wallet Funding</MenuItem>
-                  <MenuItem value="WALLET_DEDUCTING">Admin Wallet Deduct</MenuItem>
-                  <MenuItem value="DATA_ORDER">Data Order</MenuItem>
-                  <MenuItem value="AIRTIME_ORDER">Airtime Order</MenuItem>
-                  <MenuItem value="ELECTRICITY_ORDER">Electricity payment</MenuItem>
-                  <MenuItem value="CABLE_ORDER">Tv payment</MenuItem>
-                  <MenuItem value="RESULT_CHECK_ORDER">Result Check payment</MenuItem>
-                </Select>
-              </FormControl> */}
             </Stack>
             <Divider />
 
