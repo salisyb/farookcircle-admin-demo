@@ -18,6 +18,13 @@ import { useFormik } from 'formik';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { LoadingButton } from '@mui/lab';
+
+import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+
+import moment from 'moment-timezone';
 import Iconify from '../../../components/Iconify';
 import { fundUsersWallet, agentFundUserWallet, validateUser } from '../../../api/users.api';
 import { createTicket as createUserTicket } from '../../../api/system.api';
@@ -48,10 +55,10 @@ export default function UserOptionsCard({ user, handleRefresh, closeModal, onSuc
     const response = await agentFundUserWallet({
       agent: user?.username,
       amount,
-      time,
+      reference: time,
       pin,
-      resolution,
-      ticket_ref: ticketRef,
+      pending_deposit: resolution,
+      payment_date: ticketRef,
     });
     // agent, from, amount, time,
     if (response.ok && response.data?.success) {
@@ -162,17 +169,22 @@ export default function UserOptionsCard({ user, handleRefresh, closeModal, onSuc
               <FormControlLabel
                 required
                 control={<Checkbox />}
-                label="Is Resolution"
+                label="Is Pending"
                 onChange={(event) => setResolution(event.target.checked)}
               />
               {resolution && (
-                <TextField
-                  sx={{ my: '20px' }}
-                  id="outlined-required"
-                  label="Ticket Reference"
-                  value={ticketRef}
-                  onChange={(event) => setTicketRef(event.target.value)}
-                />
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DemoContainer components={['DatePicker']}>
+                    <DatePicker label="Payment Date" onChange={(e) => setTicketRef(moment(e).format('YYYY-MM-DD'))} />
+                  </DemoContainer>
+                </LocalizationProvider>
+                // <TextField
+                //   sx={{ my: '20px' }}
+                //   id="outlined-required"
+                //   label="Ticket Reference"
+                //   value={ticketRef}
+                //   onChange={(event) => setTicketRef(event.target.value)}
+                // />
               )}
               <TextField
                 sx={{ my: '20px' }}
