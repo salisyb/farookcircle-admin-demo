@@ -175,16 +175,9 @@ export default function UserOptionsCard({ user, handleRefresh, closeModal, onSuc
               {resolution && (
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DemoContainer components={['DatePicker']}>
-                    <DatePicker label="Payment Date" onChange={(e) => setTicketRef(moment(e).format('YYYY-MM-DD'))} />
+                    <DatePicker label="Payment Date" onChange={(e) => setTicketRef(e.format('YYYY-MM-DD'))} />
                   </DemoContainer>
                 </LocalizationProvider>
-                // <TextField
-                //   sx={{ my: '20px' }}
-                //   id="outlined-required"
-                //   label="Ticket Reference"
-                //   value={ticketRef}
-                //   onChange={(event) => setTicketRef(event.target.value)}
-                // />
               )}
               <TextField
                 sx={{ my: '20px' }}
