@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+/* eslint-disable no-nested-ternary */
+/* eslint-disable camelcase */
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Input,
   Box,
@@ -14,18 +16,82 @@ import {
   Select,
   TextField,
   IconButton,
+  Card,
+  Table,
+  Avatar,
+  Checkbox,
+  TableRow,
+  TableBody,
+  TableCell,
+  Container,
+  TableContainer,
+  TablePagination,
+  Link,
+  PaginationItem,
 } from '@mui/material';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider, DateRangePicker } from '@mui/x-date-pickers-pro';
+import isAfter from 'date-fns/isAfter';
+import subDays from 'date-fns/subDays';
+import startOfWeek from 'date-fns/startOfWeek';
+import endOfWeek from 'date-fns/endOfWeek';
+import addDays from 'date-fns/addDays';
+
+// import { LocalizationProvider, DateRangePicker } from '@mui/x-date-pickers-pro';
 import { SingleInputDateRangeField } from '@mui/x-date-pickers-pro/SingleInputDateRangeField';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import moment from 'moment-timezone';
 import { useSelector } from 'react-redux';
-import Iconify from '../components/Iconify';
-import MainCard from './components/MainCard';
-import TransactionsCard from './components/TransactionCard';
-import ModalC from './components/CModal';
+import { DateRangePicker } from 'rsuite';
+import { filter } from 'lodash';
+import { sentenceCase } from 'change-case';
+import { formatMoney } from '../utils/formatNumber';
+import Scrollbar from '../components/Scrollbar';
+import FundingListHead from '../sections/@dashboard/user/FundingListHead';
+import SearchNotFound from '../components/SearchNotFound';
+import Label from '../components/Label';
 import { getTransactionsHistory, refundUser } from '../api/transactions.api';
+import ModalC from './components/CModal';
+import TransactionsCard from './components/TransactionCard';
+import MainCard from './components/MainCard';
+import Iconify from '../components/Iconify';
+
+const TABLE_HEAD = [
+  { id: 'agent', label: 'Descriptions', alignRight: false },
+  { id: 'amount', label: 'Amount', alignRight: false },
+  { id: 'status', label: 'Status', alignRight: false },
+  { id: 'transaction_ref', label: 'Reference', alignRight: false },
+  { id: 'bal_before', label: 'Type', alignRight: false },
+  { id: 'bal_after', label: 'Date', alignRight: false },
+];
+
+function descendingComparator(a, b, orderBy) {
+  if (b[orderBy] < a[orderBy]) {
+    return -1;
+  }
+  if (b[orderBy] > a[orderBy]) {
+    return 1;
+  }
+  return 0;
+}
+
+function getComparator(order, orderBy) {
+  return order === 'desc'
+    ? (a, b) => descendingComparator(a, b, orderBy)
+    : (a, b) => -descendingComparator(a, b, orderBy);
+}
+
+function applySortFilter(array, comparator, query) {
+  const stabilizedThis = array.map((el, index) => [el, index]);
+  stabilizedThis.sort((a, b) => {
+    const order = comparator(a[0], b[0]);
+    if (order !== 0) return order;
+    return a[1] - b[1];
+  });
+  if (query) {
+    return filter(array, (_user) => _user.username.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+  }
+  return stabilizedThis.map((el) => el[0]);
+}
 
 export const TextValue = ({ text, value }) => (
   <Stack>
@@ -34,13 +100,52 @@ export const TextValue = ({ text, value }) => (
   </Stack>
 );
 
+const predefinedBottomRanges = [
+  {
+    label: 'Today',
+    value: [new Date(), new Date()],
+  },
+  {
+    label: 'Yesterday',
+    value: [addDays(new Date(), -1), addDays(new Date(), -1)],
+  },
+  {
+    label: 'Last 7 days',
+    value: [subDays(new Date(), 6), new Date()],
+  },
+  {
+    label: 'Last 30 days',
+    value: [subDays(new Date(), 29), new Date()],
+  },
+];
+
 const Transactions = () => {
   const navigate = useNavigate();
 
   const { user } = useSelector((state) => state.auth);
 
-  const [transactions, setTransactions] = useState(null);
-  const [selected, setSelected] = useState(null);
+  const { transactions } = useSelector((state) => state.users);
+
+  const [filterTransaction, setFilterTransaction] = React.useState(transactions);
+
+  const [page, setPage] = React.useState(0);
+
+  const [order, setOrder] = React.useState('asc');
+
+  const [count, setCount] = React.useState(0);
+
+  const [selected, setSelected] = React.useState([]);
+
+  const [selectedTransaction, setSelectedTransaction] = React.useState(null);
+
+  const [orderBy, setOrderBy] = React.useState('name');
+
+  const [filterName, setFilterName] = React.useState('');
+
+  const [paginationPage, setPaginationPage] = React.useState(1);
+
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+
   const [showModal, setShowModal] = useState(false);
 
   const [prevPage, setPrevPage] = useState(null);
@@ -63,15 +168,11 @@ const Transactions = () => {
   const [status, setStatus] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
 
-  useEffect(() => {
-    getTransactions({ page: 1 });
-  }, [filterTransactionType, searchQuery, value]);
-
-  const getTransactions = async (page) => {
+  const getTransactions = useCallback(async () => {
     setLoading(true);
 
     const filterOptions = {
-      ...page,
+      page: paginationPage,
       filterTransactionType,
       searchQuery,
     };
@@ -89,11 +190,11 @@ const Transactions = () => {
       const response = await getTransactionsHistory(filterOptions);
 
       if (response.ok && response.data) {
-        const { next, previous, results } = response.data;
+        const { next, previous, results, count } = response.data;
         const transactions = results?.transactions;
         const totalAmount = results?.total_amount_spent;
-
-        setTransactions(transactions);
+        setCount(count);
+        setFilterTransaction(transactions);
         setPrevPage(previous);
         setNextPage(next);
 
@@ -104,6 +205,36 @@ const Transactions = () => {
     }
 
     setLoading(false);
+  }, [paginationPage, filterTransactionType, searchQuery, value, filterUserId]);
+
+  useEffect(() => {
+    getTransactions();
+  }, [filterTransactionType, searchQuery, value, paginationPage, getTransactions]);
+
+  const handleChangePage = (event, newPage) => {
+    handleNextPage();
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleFilterByName = (event) => {
+    setFilterName(event.target.value);
+  };
+
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - filterTransaction.length) : 0;
+
+  const filteredUsers = applySortFilter(filterTransaction, getComparator(order, orderBy), filterName);
+
+  const isUserNotFound = filteredUsers.length === 0;
+
+  const handleRequestSort = (event, property) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
   };
 
   const parseQueryString = (url) => {
@@ -120,14 +251,12 @@ const Transactions = () => {
 
   const handlePrevPage = () => {
     if (prevPage) {
-      const queryParams = parseQueryString(prevPage);
-      getTransactions(queryParams);
+      setPaginationPage(paginationPage - 1);
     }
   };
-  const handleNextPage = () => {
+  const handleNextPage = async () => {
     if (nextPage) {
-      const queryParams = parseQueryString(nextPage);
-      getTransactions(queryParams);
+      setPaginationPage(paginationPage + 1);
     }
   };
 
@@ -135,7 +264,7 @@ const Transactions = () => {
     setRefunding(true);
     setRefundingLoading(true);
 
-    const response = await refundUser(selected?.transaction_ref);
+    const response = await refundUser(selectedTransaction?.transaction_ref);
 
     if (response.ok) {
       setStatusMessage(response.data?.message);
@@ -156,16 +285,14 @@ const Transactions = () => {
     toggleModal();
   };
 
-  console.log(selected);
-
   return (
     <>
       <ModalC isOpen={showModal} setOpen={toggleModal}>
         <Stack sx={{ cursor: 'pointer' }} direction={'row'} alignItems={'center'} justifyContent="space-between">
           <Typography>Transaction</Typography>
           {user?.isSuperUser &&
-            selected?.transaction_type?.includes('PURCHASE') &&
-            selected?.status?.toLowerCase() !== 'failed' && (
+            selectedTransaction?.transaction_type?.includes('PURCHASE') &&
+            selectedTransaction?.status?.toLowerCase() !== 'failed' && (
               <Button onClick={handleRefundUser} disabled={refunding}>
                 Refund
               </Button>
@@ -176,125 +303,260 @@ const Transactions = () => {
           <Stack direction={'column'} alignItems={'center'} justifyContent={'center'}>
             {refundingLoading ? (
               <>
-                <CircularProgress sx={{my: '10px'}} />
+                <CircularProgress sx={{ my: '10px' }} />
                 <Typography>Refunding Transaction...</Typography>
               </>
             ) : (
               <>
-                <Typography my={"10px"}>{statusMessage}</Typography>
+                <Typography my={'10px'}>{statusMessage}</Typography>
                 <Button onClick={handleCloseModal}>OK</Button>
               </>
             )}
           </Stack>
         )}
 
-        {selected && !refunding && (
+        {selectedTransaction && !refunding && (
           <Stack alignItems={'center'}>
             <Box p="15px" backgroundColor="rgb(39, 193,45)" borderRadius="30px" marginTop="20px">
-              <Typography>{selected.transaction_type}</Typography>
+              <Typography>{selectedTransaction.transaction_type || selectedTransaction.type}</Typography>
             </Box>
             <Typography marginTop="10px" fontWeight="bold">
-              {moment(selected.created_at).format('MMMM Do YYYY, h:mm:ss a')}
+              {moment(selectedTransaction.created_at).format('MMMM Do YYYY, h:mm:ss a')}
             </Typography>
             <Stack width="100%" marginTop="30px" spacing={'10px'}>
-              <TextValue text={'Amount'} value={`₦${selected.amount}`} />
+              <TextValue text={'Amount'} value={`₦${selectedTransaction.amount}`} />
               <Divider />
-              <TextValue text={'Description'} value={selected.name} />
+              <TextValue text={'Description'} value={selectedTransaction.name || 'N/A'} />
               <Divider />
-              <TextValue text={'Transaction Status'} value={selected.status} />
+              <TextValue text={'Transaction Status'} value={selectedTransaction.status} />
               <Divider />
-              <TextValue text={'Transaction Ref'} value={selected.transaction_ref} />
+              <TextValue text={'Transaction Ref'} value={selectedTransaction.transaction_ref} />
               <Divider />
 
-              <TextValue text={'Balance Before'} value={`₦${selected?.balance_before}`} />
+              <TextValue text={'Balance Before'} value={`₦${selectedTransaction?.balance_before}`} />
               <Divider />
-              <TextValue text={'Balance After'} value={`₦${selected?.balance_after}`} />
+              <TextValue text={'Balance After'} value={`₦${selectedTransaction?.balance_after}`} />
               <Divider />
             </Stack>
           </Stack>
         )}
       </ModalC>
 
-        <Box sx={{ px: { xs: '0px', sm: '100px', md: '100px', lg: '100px' }, pb: '50px' }} minHeight={400}>
-          <Stack spacing={'10px'} minHeight={550}>
-            <Stack direction={'row'} spacing={1} alignItems={'center'}>
-              <Typography fontSize={'20px'} fontWeight={'bold'}>
-                Transactions History
+      <Box sx={{ px: { xs: '0px', sm: '100px', md: '50px', lg: '50px' }, pb: '50px' }} minHeight={400}>
+        <Stack minHeight={550}>
+          {/* Page header  */}
+          <Stack direction={'column'} spacing={'5px'}>
+            <Typography fontSize={'20px'} fontWeight={'bold'}>
+              Transactions History
+            </Typography>
+            <Stack direction={'row'} spacing={1}>
+              <Typography
+                onClick={() => navigate(-1)}
+                variant={'body2'}
+                sx={{ cursor: 'pointer', ':hover': { color: '#3366FF' } }}
+              >
+                User Management
+              </Typography>
+              <Typography color={'gray'}>{'>'}</Typography>
+              <Typography variant={'body2'} color={'#3366FF'}>
+                User Activity
               </Typography>
             </Stack>
-            <FormControl variant="standard" sx={{ mb: '20px' }}>
-              <InputLabel htmlFor="input-with-icon-adornment">Search...</InputLabel>
-              <Input
-                id="input-with-icon-adornment"
-                endAdornment={<InputAdornment position="end">{/* <IconSearch /> */}</InputAdornment>}
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-              />
-            </FormControl>
-
-            <Stack
-              direction={{ xs: 'column-reverse', sm: 'row', md: 'row' }}
-              spacing={3}
-              alignItems={'center'}
-              justifyContent={'space-between'}
-            >
-              <Typography fontSize={'16px'}>Total Amount: ₦ {totalAmount}</Typography>
-              <LocalizationProvider dateAdapter={AdapterDayjs} localeText={{ start: 'Start-date', end: 'End-Date' }}>
-                <DateRangePicker
-                  value={value}
-                  slots={{ field: SingleInputDateRangeField }}
-                  onChange={(newValue) => {
-                    setValue(newValue);
-                  }}
-                  renderInput={(startProps, endProps) => (
-                    <>
-                      <TextField {...startProps} />
-                      <Box sx={{ mx: 2 }}> to </Box>
-                      <TextField {...endProps} />
-                    </>
-                  )}
-                />
-              </LocalizationProvider>
-            </Stack>
-            <Divider />
-
-            {loading ? (
-              <Stack
-                direction={'column'}
-                sx={{ mt: '100px', display: 'flex', alignSelf: 'center', alignItems: 'center' }}
-                spacing={3}
-              >
-                <CircularProgress />
-                <Typography>Loading please wait ..</Typography>
-              </Stack>
-            ) : (
-              <Stack overflow={'scroll'} spacing={3}>
-                {transactions &&
-                  transactions.map((transaction) => (
-                    <div key={transaction.id}>
-                      <TransactionsCard
-                        onClick={() => {
-                          setSelected(transaction);
-                          toggleModal();
-                        }}
-                        data={transaction}
-                      />
-                      <Divider />
-                    </div>
-                  ))}
-              </Stack>
-            )}
           </Stack>
-          <Box mt={3} display="flex" justifyContent="center">
-            <Button disabled={!prevPage} onClick={handlePrevPage} sx={{ marginRight: '10px' }}>
-              Previous
-            </Button>
-            <Button disabled={!nextPage} onClick={handleNextPage}>
-              Next
-            </Button>
-          </Box>
-        </Box>
-   
+
+          {/* page header end  */}
+
+          {/* Filter  */}
+          <Stack direction={'row'} spacing={2} alignItems={'center'} justifyContent={'space-between'} mt={'20px'}>
+            <Typography>
+              Total Amount Spent: <span style={{ color: '#3366FF' }}>₦{totalAmount}</span>
+            </Typography>
+            {/* date filter  */}
+
+            <Stack direction={'row'} spacing={2} alignItems={'center'}>
+              <DateRangePicker
+                ranges={predefinedBottomRanges}
+                shouldDisableDate={(date) => isAfter(date, new Date())}
+                placeholder={'Start Date   ~   End Date'}
+                onChange={(value) => setValue(value)}
+              />
+              {/* date filter end */}
+
+              {/* <Button startIcon={<Iconify icon={'iwwa:file-csv'} />} variant="outlined">
+              Export CSV
+            </Button> */}
+              {/* <Button startIcon={<Iconify icon={'octicon:filter-16'} />} variant={'outlined'}>
+                Filter
+              </Button> */}
+            </Stack>
+          </Stack>
+          {/* Filter end  */}
+
+          {/* Transaction not found  */}
+
+          {filterTransaction.length < 1 && (
+            <Stack
+              width={'100%'}
+              bgcolor={'white'}
+              flex={1}
+              mt={'20px'}
+              direction={'column'}
+              alignItems={'center'}
+              justifyContent={'center'}
+              sx={{
+                shadow: '0px 4px 4px rgba(0, 0, 0, 0.05)',
+              }}
+            >
+              <Iconify icon={'bx:bxs-error'} width={'70px'} height={'70px'} color={'#3366FF'} />
+              <Typography variant={'h6'}>No Transaction Found</Typography>
+            </Stack>
+          )}
+          {/* Transaction not found end  */}
+          {filterTransaction.length > 0 && (
+            <Card sx={{ mt: '20px' }}>
+              {loading && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    width: '100%',
+                    height: '100%',
+                    bgcolor: 'rgba(0,0,0,0.5)',
+                    zIndex: 100,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <CircularProgress />
+                </Box>
+              )}
+              <Scrollbar>
+                <TableContainer sx={{ maxWidth: '100%' }}>
+                  <Table>
+                    <FundingListHead
+                      order={order}
+                      orderBy={orderBy}
+                      headLabel={TABLE_HEAD}
+                      rowCount={count}
+                      numSelected={selected.length}
+                      onRequestSort={handleRequestSort}
+                    />
+                    <TableBody>
+                      {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                        const { id, name, amount, transaction_ref, transaction_type, status, created_at, type } = row;
+                        const isItemSelected = selected.indexOf(id) !== -1;
+
+                        return (
+                          <TableRow
+                            hover
+                            key={''}
+                            tabIndex={-1}
+                            onClick={() => {
+                              setSelectedTransaction(row);
+                              toggleModal();
+                            }}
+                            sx={{ cursor: 'pointer' }}
+                          >
+                            <TableCell padding="checkbox">
+                              {/* <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, id)} /> */}
+                            </TableCell>
+                            <TableCell component="th" scope="row" padding="none">
+                              <Stack direction="row" alignItems="center" spacing={2}>
+                                {/* <Avatar alt={agent} src={avatar} /> */}
+                                <Typography variant="subtitle2" noWrap>
+                                  {`${name || 'N/A'}`}
+                                </Typography>
+                              </Stack>
+                            </TableCell>
+                            <TableCell align="left">{formatMoney(amount)}</TableCell>
+                            <TableCell align="left">
+                              <Label
+                                variant="ghost"
+                                color={
+                                  status?.toLowerCase() === 'successful'
+                                    ? 'success'
+                                    : status?.toLowerCase() === 'failed'
+                                    ? 'error'
+                                    : 'warning'
+                                }
+                              >
+                                {sentenceCase(status)}
+                              </Label>
+                            </TableCell>
+                            <TableCell align="left">{transaction_ref}</TableCell>
+                            <TableCell align="left">
+                              <Label variant="ghost" color={'info'}>
+                                {transaction_type?.split('_').join(' ') || type?.split('_').join(' ')}
+                              </Label>
+                            </TableCell>
+                            <TableCell align="left">{moment(created_at).format('MMM Do YYYY, h:mm a')}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                      {emptyRows > 0 && (
+                        <TableRow style={{ height: 53 * emptyRows }}>
+                          <TableCell colSpan={6} />
+                        </TableRow>
+                      )}
+                    </TableBody>
+
+                    {isUserNotFound && (
+                      <TableBody>
+                        <TableRow>
+                          <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
+                            <SearchNotFound searchQuery={filterName} />
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    )}
+                  </Table>
+                </TableContainer>
+              </Scrollbar>
+
+              {/* custom pagination  */}
+
+              <Stack direction={'row'} justifyContent={'center'} alignItems={'center'} my={'20px'}>
+                <Stack direction={'row'} spacing={2} alignItems={'center'}>
+                  <IconButton
+                    onClick={handlePrevPage}
+                    disabled={!prevPage}
+                    sx={{ color: prevPage ? '#3366FF' : 'gray' }}
+                  >
+                    <Iconify icon={'bx:bx-chevron-left'} />
+                  </IconButton>
+                  {/* Render page numbers */}
+                  <Stack direction={'row'} spacing={2} alignItems={'center'}>
+                    {Array.from({ length: Math.ceil(count / 10) }, (_, i) => (
+                      <Typography
+                        key={i}
+                        variant={'body2'}
+                        sx={{
+                          cursor: 'pointer',
+                          color: i + 1 === paginationPage ? '#3366FF' : 'black',
+                          fontWeight: i + 1 === paginationPage ? 'bold' : 'normal',
+                        }}
+                        onClick={() => setPaginationPage(i + 1)}
+                      >
+                        {i + 1}
+                      </Typography>
+                    ))}
+                  </Stack>
+                  <IconButton
+                    onClick={handleNextPage}
+                    disabled={!nextPage}
+                    sx={{ color: nextPage ? '#3366FF' : 'gray' }}
+                  >
+                    <Iconify icon={'bx:bx-chevron-right'} />
+                  </IconButton>
+                </Stack>
+              </Stack>
+
+              {/* custom pagination end  */}
+            </Card>
+          )}
+          {/* Transaction Card  */}
+        </Stack>
+      </Box>
     </>
   );
 };

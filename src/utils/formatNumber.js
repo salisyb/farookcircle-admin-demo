@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 import { replace } from 'lodash';
 import numeral from 'numeral';
 
@@ -21,4 +22,20 @@ export function fShortenNumber(number) {
 
 export function fData(number) {
   return numeral(number).format('0.0 b');
+}
+
+export function formatMoney(amount) {
+  // Convert amount to a number if it's not already
+  amount = parseFloat(amount);
+
+  // Check if amount is a valid number
+  if (isNaN(amount)) {
+    return 'Invalid amount';
+  }
+
+  // Format the amount with 2 decimal places and comma separator
+  const formattedAmount = amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+
+  // Add currency symbol
+  return `₦${formattedAmount}`;
 }
