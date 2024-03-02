@@ -215,13 +215,9 @@ const Transactions = () => {
         )}
       </ModalC>
 
-      <MainCard title="Transactions History">
-        <Box sx={{ px: { xs: '0px', sm: '100px', md: '140px', lg: '180px' }, pb: '50px' }} minHeight={400}>
+        <Box sx={{ px: { xs: '0px', sm: '100px', md: '100px', lg: '100px' }, pb: '50px' }} minHeight={400}>
           <Stack spacing={'10px'} minHeight={550}>
             <Stack direction={'row'} spacing={1} alignItems={'center'}>
-              <IconButton sx={{ bgcolor: 'GrayText' }} onClick={() => navigate(-1)}>
-                <Iconify icon="ion:chevron-back-circle" color={'white'} />
-              </IconButton>
               <Typography fontSize={'20px'} fontWeight={'bold'}>
                 Transactions History
               </Typography>
@@ -298,7 +294,7 @@ const Transactions = () => {
             </Button>
           </Box>
         </Box>
-      </MainCard>
+   
     </>
   );
 };
