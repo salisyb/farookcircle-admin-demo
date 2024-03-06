@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable camelcase */
 import React, { useState, useEffect, useCallback } from 'react';
@@ -54,14 +55,17 @@ import ModalC from './components/CModal';
 import TransactionsCard from './components/TransactionCard';
 import MainCard from './components/MainCard';
 import Iconify from '../components/Iconify';
+import TransactionPopoverModal from './components/TransactionPopoverModal';
 
 const TABLE_HEAD = [
-  { id: 'agent', label: 'Descriptions', alignRight: false },
+  { id: 'name', label: 'Descriptions', alignRight: false },
   { id: 'amount', label: 'Amount', alignRight: false },
   { id: 'status', label: 'Status', alignRight: false },
   { id: 'transaction_ref', label: 'Reference', alignRight: false },
-  { id: 'bal_before', label: 'Type', alignRight: false },
-  { id: 'bal_after', label: 'Date', alignRight: false },
+  { id: 'transaction_type', label: 'Type', alignRight: false },
+  { id: 'balance_before', label: 'Bal Before', alignRight: false },
+  { id: 'balance_after', label: 'Balance After', alignRight: false },
+  { id: 'created_at', label: 'Date', alignRight: false },
 ];
 
 function descendingComparator(a, b, orderBy) {
@@ -124,7 +128,7 @@ const Transactions = () => {
 
   const { user } = useSelector((state) => state.auth);
 
-  const { transactions } = useSelector((state) => state.users);
+  const [transactions, setTransactions] = React.useState([]);
 
   const [filterTransaction, setFilterTransaction] = React.useState(transactions);
 
@@ -191,10 +195,11 @@ const Transactions = () => {
 
       if (response.ok && response.data) {
         const { next, previous, results, count } = response.data;
-        const transactions = results?.transactions;
+        const transaction = results?.transactions;
         const totalAmount = results?.total_amount_spent;
         setCount(count);
-        setFilterTransaction(transactions);
+        setFilterTransaction(transaction);
+        setTransactions(transaction);
         setPrevPage(previous);
         setNextPage(next);
 
@@ -273,8 +278,6 @@ const Transactions = () => {
       return;
     }
 
-    console.log('Refunding Error', response.data?.message);
-
     setStatusMessage('Error Refunding Transaction');
     setRefundingLoading(false);
     setStatus(false);
@@ -284,6 +287,75 @@ const Transactions = () => {
     setRefunding(false);
     toggleModal();
   };
+
+  const handleExportTransactionToCsv = () => {
+    const csv = filterTransaction.map((transaction) => {
+      const {
+        id,
+        name,
+        amount,
+        transaction_ref,
+        transaction_type,
+        status,
+        created_at,
+        type,
+        balance_before,
+        balance_after,
+      } = transaction;
+      return {
+        id,
+        name,
+        amount,
+        transaction_ref,
+        transaction_type: transaction_type?.split('_').join(' ') || type?.split('_').join(' '),
+        status,
+        created_at: moment(created_at).format('MMM Do YYYY, h:mm a'),
+        balance_before,
+        balance_after,
+      };
+    });
+
+    const csvData = csv.map((row) => Object.values(row).join(',')).join('\n');
+
+    const blob = new Blob([csvData], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', 'transactions.csv');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const handleApplyFilter = useCallback(
+    (filter) => {
+      if (Object.keys(filter).length < 1) {
+        setFilterTransaction(transactions);
+        return;
+      }
+
+      const filteredList = transactions.filter((transact) => {
+        for (const key in filter) {
+          if (transact[key] !== filter[key] && key !== 'created_at') {
+            return false;
+          }
+        }
+
+        if (filter.created_at) {
+          if (filter.created_at !== moment(transact.created_at).format('YYYY-MM-DD')) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      // setPage(1);
+      setFilterTransaction(filteredList);
+    },
+    [transactions]
+  );
 
   return (
     <>
@@ -382,12 +454,17 @@ const Transactions = () => {
               />
               {/* date filter end */}
 
-              {/* <Button startIcon={<Iconify icon={'iwwa:file-csv'} />} variant="outlined">
-              Export CSV
-            </Button> */}
-              {/* <Button startIcon={<Iconify icon={'octicon:filter-16'} />} variant={'outlined'}>
-                Filter
-              </Button> */}
+              <Button
+                onClick={handleExportTransactionToCsv}
+                startIcon={<Iconify icon={'iwwa:file-csv'} />}
+                variant="outlined"
+              >
+                Export CSV
+              </Button>
+
+              <Stack alignItems={'center'} spacing={1} direction={'row'}>
+                <TransactionPopoverModal onApplyFilter={handleApplyFilter} />
+              </Stack>
             </Stack>
           </Stack>
           {/* Filter end  */}
@@ -431,7 +508,7 @@ const Transactions = () => {
                 </Box>
               )}
               <Scrollbar>
-                <TableContainer sx={{ maxWidth: '100%' }}>
+                <TableContainer sx={{ width: '130%' }}>
                   <Table>
                     <FundingListHead
                       order={order}
@@ -443,7 +520,18 @@ const Transactions = () => {
                     />
                     <TableBody>
                       {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                        const { id, name, amount, transaction_ref, transaction_type, status, created_at, type } = row;
+                        const {
+                          id,
+                          name,
+                          amount,
+                          transaction_ref,
+                          transaction_type,
+                          status,
+                          balance_before,
+                          balance_after,
+                          created_at,
+                          type,
+                        } = row;
                         const isItemSelected = selected.indexOf(id) !== -1;
 
                         return (
@@ -486,9 +574,11 @@ const Transactions = () => {
                             <TableCell align="left">{transaction_ref}</TableCell>
                             <TableCell align="left">
                               <Label variant="ghost" color={'info'}>
-                                {transaction_type?.split('_').join(' ') || type?.split('_').join(' ')}
+                                {transaction_type?.split('_').join(' ') || type?.split('_').join(' ').toUpperCase()}
                               </Label>
                             </TableCell>
+                            <TableCell align="left">{formatMoney(balance_before)}</TableCell>
+                            <TableCell align="left">{formatMoney(balance_after)}</TableCell>
                             <TableCell align="left">{moment(created_at).format('MMM Do YYYY, h:mm a')}</TableCell>
                           </TableRow>
                         );

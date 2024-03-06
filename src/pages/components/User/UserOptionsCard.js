@@ -45,6 +45,7 @@ export default function UserOptionsCard({ user, handleRefresh, closeModal, onSuc
   const [isLoading, setIsLoading] = React.useState(false);
   const [time, setTime] = React.useState('');
   const [pin, setPin] = React.useState('');
+  const [fakePin, setFakingPin] = React.useState('');
   const [resolution, setResolution] = useState(false);
   const [ticketRef, setTicketRef] = useState('');
 
@@ -151,6 +152,7 @@ export default function UserOptionsCard({ user, handleRefresh, closeModal, onSuc
               <TextField
                 sx={{ my: '20px' }}
                 id="outlined-required"
+                autoComplete="off"
                 label="Amount"
                 value={amount}
                 onChange={(event) => {
@@ -161,9 +163,12 @@ export default function UserOptionsCard({ user, handleRefresh, closeModal, onSuc
               />
               <TextField
                 sx={{ my: '20px' }}
-                id="outlined-required"
                 label="Reference"
+                inputProps={{
+                  autoComplete: 'new-password',
+                }}
                 value={time}
+                autoComplete="chrome-off"
                 onChange={(event) => setTime(event.target.value)}
               />
               <FormControlLabel
@@ -181,11 +186,19 @@ export default function UserOptionsCard({ user, handleRefresh, closeModal, onSuc
               )}
               <TextField
                 sx={{ my: '20px' }}
-                id="outlined-required"
                 label="Your PIN"
-                value={pin}
-                type="password"
-                onChange={(event) => setPin(event.target.value)}
+                value={fakePin}
+                type="text"
+                autoComplete="off"
+                onChange={(event) => {
+                  if (event.target.value.length < pin.length) {
+                    // remove last character
+                    setPin(pin.slice(0, -1));
+                  } else {
+                    setPin(pin + event.target.value[event.target.value.length - 1]);
+                  }
+                  setFakingPin(event.target.value.replace(/./g, '*'));
+                }}
               />
             </Stack>
 
