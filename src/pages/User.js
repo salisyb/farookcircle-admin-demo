@@ -1,3 +1,5 @@
+/* eslint-disable arrow-body-style */
+/* eslint-disable no-else-return */
 /* eslint-disable camelcase */
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -187,26 +189,34 @@ export default function User() {
     handleGetUserData();
   }, []);
 
-  React.useEffect(() => {
-    setFilterTransaction(history);
-  }, [transactions]);
-
   const handleFilterTransactions = async (queryFilter) => {
-    setIsLoading(true);
-    const request = await getListOfTransactions(queryFilter);
-    if (request.ok) {
-      setFilterTransaction(request.data);
-      setIsLoading(false);
-      return;
-    }
+    const filteredTransactions = history.filter((transaction) => {
+      return Object.entries(queryFilter).every(([key, value]) => {
+        if (transaction[key] === undefined || transaction[key] === null) {
+          console.log('returning here');
+          return false;
+        }
 
-    setFilterTransaction([]);
-    setIsLoading(false);
+        if (key === 'amount' || key === 'balance') {
+          // Handle numeric fields with equality check
+          return transaction[key] === parseFloat(value);
+        } else if (key === 'createdAt' || key === 'updatedAt') {
+          // Handle date fields with date comparison (if needed)
+          return new Date(transaction[key]).toISOString().startsWith(value);
+        } else {
+          // Handle string fields with inclusion check
+          return transaction[key].toString().includes(value);
+        }
+      });
+    });
+
+    setFilterTransaction(filteredTransactions);
+    setPage(0);
   };
 
   const handleApplyFilter = (filter) => {
     if (Object.keys(filter).length < 1) {
-      setFilterTransaction(transactions);
+      setFilterTransaction(history);
       return;
     }
     handleFilterTransactions(filter);
@@ -216,7 +226,7 @@ export default function User() {
     const request = await getUserInfo();
 
     if (request.ok) {
-      console.log(request.data);
+    
       dispatch({ type: USER_UPDATE, payload: request.data });
     }
   };
@@ -248,7 +258,9 @@ export default function User() {
             </Typography>
             <Stack direction={'row'} spacing={1}>
               <Typography>Account Name:</Typography>
-              <Typography sx={{fontWeight: '700'}} color={'#3366FF'}>{owner}</Typography>
+              <Typography sx={{ fontWeight: '700' }} color={'#3366FF'}>
+                {owner}
+              </Typography>
             </Stack>
           </Stack>
           <Card style={{ paddingBlock: '10px' }}>

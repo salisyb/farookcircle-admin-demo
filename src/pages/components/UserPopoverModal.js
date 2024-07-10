@@ -3,22 +3,16 @@ import Popover from '@mui/material/Popover';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { FormControl, MenuItem, Select, Stack, TextField } from '@mui/material';
-import Iconify from '../../components/Iconify';
 
-export default function TransactionPopoverModal({ onApplyFilter }) {
+export default function UserBasicPopover({ onApplyFilter }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
 
   const [formData, setFormData] = React.useState({
-    id: '',
-    customer: '',
-    transaction_ref: '',
-    transaction_type: '',
+    owner: '',
     amount: '',
-    name: '',
-    status: '',
-    balance_before: '',
-    balance_after: '',
-    date: '',
+    description: '',
+    createdAt: '',
+    direction: '',
   });
 
   const handleSetFormData = (event) => {
@@ -42,6 +36,13 @@ export default function TransactionPopoverModal({ onApplyFilter }) {
     });
 
     onApplyFilter(payload);
+    // setFormData({
+    //   owner: '',
+    //   amount: '',
+    //   description: '',
+    //   createdAt: '',
+    //   direction: '',
+    // });
     handleClose();
   };
 
@@ -50,12 +51,7 @@ export default function TransactionPopoverModal({ onApplyFilter }) {
 
   return (
     <div>
-      <Button
-        startIcon={<Iconify icon={'octicon:filter-16'} />}
-        aria-describedby={id}
-        variant={'outlined'}
-        onClick={handleClick}
-      >
+      <Button aria-describedby={id} variant="contained" onClick={handleClick}>
         Filter
       </Button>
       <Popover
@@ -70,29 +66,18 @@ export default function TransactionPopoverModal({ onApplyFilter }) {
       >
         <Stack sx={{ padding: '10px', width: '400px' }} spacing={'10px'}>
           <Stack direction={'row'}>
-            <Typography sx={{ p: 2 }}>Filter Transactions</Typography>
+            <Typography sx={{ p: 2 }}>Filter.</Typography>
           </Stack>
 
           <TextField
             id="outlined-text-input"
-            name="id"
-            value={formData.id}
+            name="owner"
+            value={formData.owner}
             onChange={handleSetFormData}
-            label="Transaction ID"
+            label="Owner"
             type="text"
             size="small"
           />
-
-          <TextField
-            id="outlined-text-input"
-            name="name"
-            value={formData.name}
-            onChange={handleSetFormData}
-            label="Description"
-            type="text"
-            size="small"
-          />
-
           <TextField
             id="outlined-text-input"
             name="amount"
@@ -105,60 +90,30 @@ export default function TransactionPopoverModal({ onApplyFilter }) {
 
           <TextField
             id="outlined-text-input"
-            name="balance_before"
-            value={formData.balance_before}
+            name="description"
+            value={formData.description}
             onChange={handleSetFormData}
-            label="Balance before"
-            type="text"
-            size="small"
-          />
-
-          <TextField
-            id="outlined-text-input"
-            name="transaction_type"
-            value={formData.transaction_type}
-            onChange={handleSetFormData}
-            label="Transaction Type"
-            type="text"
-            size="small"
-          />
-
-          <TextField
-            id="outlined-text-input"
-            name="balance_after"
-            value={formData.balance_after}
-            onChange={handleSetFormData}
-            label="Balance After"
-            type="text"
-            size="small"
-          />
-
-          <TextField
-            id="outlined-text-input"
-            name="customer"
-            value={formData.customer}
-            onChange={handleSetFormData}
-            label="Customer"
+            label="Descriptions"
             type="text"
             size="small"
           />
           <TextField
             id="outlined-text-input"
-            name="transaction_ref"
-            value={formData.transaction_ref}
-            onChange={handleSetFormData}
-            label="Reference"
-            type="text"
-            size="small"
-          />
-
-          <TextField
-            id="outlined-text-input"
-            name="date"
-            value={formData.date}
+            name="createdAt"
+            value={formData.createdAt}
             onChange={handleSetFormData}
             label="Date"
             type="date"
+            size="small"
+          />
+
+          <TextField
+            id="outlined-text-input"
+            name="direction"
+            value={formData.direction}
+            onChange={handleSetFormData}
+            label="Directions"
+            type="text"
             size="small"
           />
 

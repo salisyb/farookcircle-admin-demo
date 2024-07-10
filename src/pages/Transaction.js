@@ -444,7 +444,7 @@ const Transactions = () => {
               Total Amount Spent: <span style={{ color: '#3366FF' }}>₦{totalAmount}</span>
             </Typography>
             {/* date filter  */}
-
+ 
             <Stack direction={'row'} spacing={2} alignItems={'center'}>
               <DateRangePicker
                 ranges={predefinedBottomRanges}

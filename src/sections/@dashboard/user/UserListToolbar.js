@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import { styled } from '@mui/material/styles';
 import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment, Stack } from '@mui/material';
 // component
+import UserBasicPopover from '../../../pages/components/UserPopoverModal';
 import Iconify from '../../../components/Iconify';
-import BasicPopover from '../../../pages/components/PopoverModal';
 
 // ----------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ export default function UserListToolbar({
         </Typography>
       </Stack>
 
-      {/* <BasicPopover onApplyFilter={onApplyFilter} /> */}
+      <UserBasicPopover onApplyFilter={onApplyFilter} />
     </RootStyle>
   );
 }
