@@ -11,18 +11,24 @@ const navConfig = [
     path: '/dashboard/app',
     icon: getIcon('material-symbols:dashboard'),
   },
+
   {
     title: 'funding history',
     path: '/dashboard/funding',
     icon: getIcon('material-symbols:history'),
   },
   {
-    title: 'Users',
+    title: 'users',
     path: '/dashboard/users',
     icon: getIcon('ph:users-fill'),
   },
   {
-    title: 'Tickets',
+    title: 'user history',
+    path: '/dashboard/transactions',
+    icon: getIcon('icon-park-solid:transaction-order'),
+  },
+  {
+    title: 'tickets',
     path: '/dashboard/tickets',
     icon: getIcon('f7:tickets-fill'),
   },

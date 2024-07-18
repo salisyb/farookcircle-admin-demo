@@ -3,6 +3,7 @@
         "bgcolor",
         "datashop",
         "Formik",
-        "Iconify"
+        "Iconify",
+        "weui"
     ]
 }

@@ -16,11 +16,11 @@ const style = {
     p: 4
 };
 
-export default function ModalC({ isOpen, setOpen, children }) {
+export default function ModalC({ isOpen, setOpen, children, sx = {} }) {
     return (
         <div>
             <Modal open={isOpen} onClose={setOpen} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
-                <Box sx={style}>{children}</Box>
+                <Box sx={{...style, ...sx}}>{children}</Box>
             </Modal>
         </div>
     );

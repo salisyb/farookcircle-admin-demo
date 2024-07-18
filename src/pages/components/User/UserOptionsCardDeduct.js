@@ -6,31 +6,20 @@ import {
   Button,
   Checkbox,
   CircularProgress,
-  FormControl,
   FormControlLabel,
-  IconButton,
-  OutlinedInput,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
-import { useDispatch, useSelector } from 'react-redux';
-import { useFormik } from 'formik';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { LoadingButton } from '@mui/lab';
 
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
-import moment from 'moment-timezone';
-import Iconify from '../../../components/Iconify';
-import { fundUsersWallet, agentFundUserWallet, validateUser } from '../../../api/users.api';
-import { createTicket as createUserTicket } from '../../../api/system.api';
+import { agentDeductUser, agentFundUserWallet } from '../../../api/users.api';
 
-export default function UserOptionsCard({ user, balance, handleRefresh, type, closeModal, onSuccess }) {
+export default function UserOptionsCardDeduct({ user, handleRefresh, type, onSuccess }) {
   // state
 
   const [amount, setAmount] = React.useState('');
@@ -44,37 +33,31 @@ export default function UserOptionsCard({ user, balance, handleRefresh, type, cl
   const [time, setTime] = React.useState('');
   const [pin, setPin] = React.useState('');
   const [fakePin, setFakingPin] = React.useState('');
-  const [resolution, setResolution] = useState(false);
-  const [ticketRef, setTicketRef] = useState('');
 
   const handleUserWallet = async () => {
     setShow(true);
     setLoading(true);
 
-    const response = await agentFundUserWallet({
+    const response = await agentDeductUser({
       agent: user?.username,
       amount,
-      reference: time,
-      pin,
-      pending_deposit: resolution,
-      payment_date: ticketRef,
+      reason: time,
     });
     // agent, from, amount, time,
-    if (response.ok && response.data?.success) {
+    if (response.ok) {
       setLoading(false);
       setStatus(true);
       handleRefresh();
-      setStatusMessage(response.data.message);
+      setStatusMessage(response.data?.message);
       return;
     }
     setLoading(false);
     setStatus(false);
 
-    setStatusMessage(response.data.message);
+    setStatusMessage(response.data?.message);
   };
 
   const handleToggleShow = () => {
-    console.log(status);
     if (status) {
       onSuccess();
       return;
@@ -84,17 +67,13 @@ export default function UserOptionsCard({ user, balance, handleRefresh, type, cl
   };
 
   React.useEffect(() => {
-    if (amount !== '' && time && pin) {
-      if (resolution && ticketRef === '') {
-        setValid(false);
-        return;
-      }
+    if (amount !== '' && time) {
       setValid(true);
       return;
     }
 
     setValid(false);
-  }, [amount, time, pin, resolution, ticketRef]);
+  }, [amount, time]);
 
   return (
     <>
@@ -153,7 +132,7 @@ export default function UserOptionsCard({ user, balance, handleRefresh, type, cl
               </Typography>
               {type === 'Deduct' && (
                 <Alert sx={{ mt: '20px' }} severity="info">
-                  Note: Wallet Deduction will be submitted to admin.
+                  Note: Wallet Deduction will be submitted to admin for approval.
                 </Alert>
               )}
 
@@ -177,10 +156,11 @@ export default function UserOptionsCard({ user, balance, handleRefresh, type, cl
                     setAmount(event.target.value);
                   }
                 }}
+                helperText={Number(amount) > Number(user.balance) && 'Amount to deduct cannot be greater than user balance'}
               />
               <TextField
                 sx={{ my: '20px' }}
-                label="Reference"
+                label="Reason"
                 inputProps={{
                   autoComplete: 'new-password',
                 }}
@@ -188,46 +168,18 @@ export default function UserOptionsCard({ user, balance, handleRefresh, type, cl
                 autoComplete="chrome-off"
                 onChange={(event) => setTime(event.target.value)}
               />
-              <FormControlLabel
-                required
-                control={<Checkbox />}
-                label="Is Pending"
-                onChange={(event) => setResolution(event.target.checked)}
-              />
-              {resolution && (
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <DemoContainer components={['DatePicker']}>
-                    <DatePicker
-                      label="Payment Date"
-                      onChange={(e) => setTicketRef(e.format('YYYY-MM-DD'))}
-                      sx={{ width: '100%' }}
-                    />
-                  </DemoContainer>
-                </LocalizationProvider>
-              )}
-              <TextField
-                sx={{ my: '20px' }}
-                label="Your PIN"
-                value={fakePin}
-                type="text"
-                autoComplete="off"
-                onChange={(event) => {
-                  if (event.target.value.length < pin.length) {
-                    // remove last character
-                    setPin(pin.slice(0, -1));
-                  } else {
-                    setPin(pin + event.target.value[event.target.value.length - 1]);
-                  }
-                  setFakingPin(event.target.value.replace(/./g, '*'));
-                }}
-              />
             </Stack>
 
             <Stack direction={'row'} sx={{ mt: '20px' }}>
-              <Button fullWidth variant={'outlined'} onClick={onSuccess} sx={{ mr: '10px' }} >
+              <Button fullWidth variant={'outlined'} onClick={onSuccess} sx={{ mr: '10px' }}>
                 Cancel
               </Button>
-              <Button variant={'contained'} onClick={handleUserWallet} disabled={!valid} fullWidth>
+              <Button
+                variant={'contained'}
+                onClick={handleUserWallet}
+                // disabled={!valid || amount > user.balance}
+                fullWidth
+              >
                 Submit
               </Button>
             </Stack>

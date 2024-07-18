@@ -123,7 +123,7 @@ const predefinedBottomRanges = [
   },
 ];
 
-const Transaction = () => {
+const Transactions = () => {
   const navigate = useNavigate();
 
   const { user } = useSelector((state) => state.auth);
@@ -172,7 +172,14 @@ const Transaction = () => {
   const [status, setStatus] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
 
+  const [query, setQuery] = useState('');
+
+  console.log(query);
+
   const getTransactions = useCallback(async () => {
+    if (!query) {
+      return;
+    }
     setLoading(true);
 
     const filterOptions = {
@@ -188,6 +195,10 @@ const Transaction = () => {
 
     if (filterUserId) {
       filterOptions.username = filterUserId;
+    }
+
+    if (query) {
+      filterOptions.query = query;
     }
 
     try {
@@ -210,25 +221,11 @@ const Transaction = () => {
     }
 
     setLoading(false);
-  }, [paginationPage, filterTransactionType, searchQuery, value, filterUserId]);
+  }, [query, paginationPage, filterTransactionType, searchQuery, value, filterUserId]);
 
-  useEffect(() => {
-    getTransactions();
-  }, [filterTransactionType, searchQuery, value, paginationPage, getTransactions]);
-
-  const handleChangePage = (event, newPage) => {
-    handleNextPage();
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const handleFilterByName = (event) => {
-    setFilterName(event.target.value);
-  };
+  // useEffect(() => {
+  //   getTransactions();
+  // }, [filterTransactionType, searchQuery, value, paginationPage, getTransactions]);
 
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - filterTransaction.length) : 0;
 
@@ -240,18 +237,6 @@ const Transaction = () => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
-  };
-
-  const parseQueryString = (url) => {
-    const queryString = url.split('?')[1];
-    if (!queryString) return {};
-
-    const params = {};
-    queryString.split('&').forEach((param) => {
-      const [key, value] = param.split('=');
-      params[key] = decodeURIComponent(value);
-    });
-    return params;
   };
 
   const handlePrevPage = () => {
@@ -359,7 +344,7 @@ const Transaction = () => {
 
   return (
     <>
-      <ModalC sx={{ width: 800 }} isOpen={showModal} setOpen={toggleModal}>
+      <ModalC isOpen={showModal} setOpen={toggleModal}>
         <Stack sx={{ cursor: 'pointer' }} direction={'row'} alignItems={'center'} justifyContent="space-between">
           <Typography>Transaction</Typography>
           {user?.isSuperUser &&
@@ -421,28 +406,32 @@ const Transaction = () => {
             <Typography fontSize={'20px'} fontWeight={'bold'}>
               Transactions History
             </Typography>
-            <Stack direction={'row'} spacing={1}>
-              <Typography
-                onClick={() => navigate(-1)}
-                variant={'body2'}
-                sx={{ cursor: 'pointer', ':hover': { color: '#3366FF' } }}
-              >
-                User Management
-              </Typography>
-              <Typography color={'gray'}>{'>'}</Typography>
-              <Typography variant={'body2'} color={'#3366FF'}>
-                User Activity
-              </Typography>
-            </Stack>
           </Stack>
 
           {/* page header end  */}
 
           {/* Filter  */}
-          <Stack direction={'row'} spacing={2} alignItems={'center'} justifyContent={'space-between'} mt={'20px'}>
-            <Typography>
-              Total Amount Spent: <span style={{ color: '#3366FF' }}>₦{totalAmount}</span>
-            </Typography>
+          <Stack direction={'row'} spacing={2} alignItems={'flex-start'} justifyContent={'space-between'} mt={'20px'}>
+            <Stack spacing={2}>
+              <TextField
+                size={'small'}
+                placeholder={'Search transactions...'}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={getTransactions}>
+                        <Iconify icon={'weui:search-outlined'} />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <Typography>
+                Total Amount <span style={{ color: '#3366FF' }}>₦{totalAmount}</span>
+              </Typography>
+            </Stack>
             {/* date filter  */}
 
             <Stack direction={'row'} spacing={2} alignItems={'center'}>
@@ -471,7 +460,7 @@ const Transaction = () => {
 
           {/* Transaction not found  */}
 
-          {filterTransaction.length < 1 && (
+          {(filterTransaction.length < 1 || loading) && (
             <Stack
               width={'100%'}
               bgcolor={'white'}
@@ -484,29 +473,24 @@ const Transaction = () => {
                 shadow: '0px 4px 4px rgba(0, 0, 0, 0.05)',
               }}
             >
-              <Iconify icon={'bx:bxs-error'} width={'70px'} height={'70px'} color={'#3366FF'} />
-              <Typography variant={'h6'}>No Transaction Found</Typography>
+              {loading ? (
+                <>
+                  <CircularProgress />
+                  <Typography mt={'20px'} variant={'h6'}>
+                    Loading please wait...
+                  </Typography>
+                </>
+              ) : (
+                <>
+                  <Iconify icon={'bx:bxs-error'} width={'70px'} height={'70px'} color={'#3366FF'} />
+                  <Typography variant={'h6'}>No Transaction Found</Typography>
+                </>
+              )}
             </Stack>
           )}
           {/* Transaction not found end  */}
           {filterTransaction.length > 0 && (
             <Card sx={{ mt: '20px' }}>
-              {loading && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    width: '100%',
-                    height: '100%',
-                    bgcolor: 'rgba(0,0,0,0.5)',
-                    zIndex: 100,
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  <CircularProgress />
-                </Box>
-              )}
               <Scrollbar>
                 <TableContainer sx={{ width: '130%' }}>
                   <Table>
@@ -532,7 +516,6 @@ const Transaction = () => {
                           created_at,
                           type,
                         } = row;
-                        const isItemSelected = selected.indexOf(id) !== -1;
 
                         return (
                           <TableRow
@@ -648,4 +631,4 @@ const Transaction = () => {
   );
 };
 
-export default Transaction;
+export default Transactions;

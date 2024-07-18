@@ -13,8 +13,10 @@ import NotFound from './pages/Page404';
 import TicketList from './pages/TicketList';
 import TicketMessages from './pages/TicketMessage';
 import UsersManagement from './pages/UsersManagement';
-import Transactions from './pages/Transaction';
+import Transactions from './pages/Transactions';
 import Funding from './pages/Funding';
+import Transaction from './pages/Transaction';
+import TransactionData from './pages/TransactionData';
 
 // ----------------------------------------------------------------------
 
@@ -31,6 +33,8 @@ export default function Router() {
         { path: 'users', element: isAuthenticated ? <UsersManagement /> : <Navigate to="/login" /> },
         { path: 'tickets', element: isAuthenticated ? <TicketList /> : <Navigate to="/login" /> },
         { path: 'tickets/message', element: isAuthenticated ? <TicketMessages /> : <Navigate to="/login" /> },
+        { path: 'transaction', element: isAuthenticated ? <Transaction /> : <Navigate to="/login" /> },
+        { path: 'transaction/data', element: isAuthenticated ? <TransactionData /> : <Navigate to="/login" /> },
         { path: 'transactions', element: isAuthenticated ? <Transactions /> : <Navigate to="/login" /> },
       ],
     },

@@ -151,6 +151,17 @@ export const agentFundUserWallet = (payload = {}) => {
   return api.post('/api/v1/deposit', payload, config);
 };
 
+export const agentDeductUser = (payload = {}) => {
+  const { token } = store.getState().auth;
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  return datashopAPI.post('/wallet/wallet-deduction', payload, config);
+};
+
 export const sendUserMessage = (payload) => {
   const { token } = store.getState().auth;
 

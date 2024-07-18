@@ -39,6 +39,7 @@ import UserOptionsCardMessage from './components/User/UserOptionsCardMessage';
 import UserOptionsCardEmail from './components/User/UserOptionsCardEmail';
 import UserOptionsCardInfo from './components/User/UserOptionsCardInfo';
 import ModalC from './components/CModal';
+import UserOptionsCardDeduct from './components/User/UserOptionsCardDeduct';
 
 export default function UsersManagement() {
   const navigate = useNavigate();
@@ -48,10 +49,14 @@ export default function UsersManagement() {
   const [search, setSearch] = React.useState('');
   const [tickets, setTickets] = React.useState([]);
   const [toggleFundUser, setToggleFundUser] = React.useState(false);
+  const [toggleDeductUser, setToggleDeductUser] = React.useState(false);
+
   const [toggleSendUserMessage, setToggleSendUserMessage] = React.useState(false);
   const [toggleSendUserEmail, setToggleSendUserEmail] = React.useState(false);
   const [firstTime, setFirstTime] = useState(true);
   const [ticketLoading, setTicketLoading] = useState(false);
+
+  const [walletActionType, setWalletActionType] = useState('');
 
   const [selectedFile, setSelectedFile] = React.useState(null);
   const [toggleCreateTicket, setToggleCreateTicket] = useState(false);
@@ -99,15 +104,22 @@ export default function UsersManagement() {
 
   const handleViewTicket = (ticketId) => navigate(`/dashboard/tickets/message?ticketId=${ticketId}`);
   const navigateUserTicketScreen = () => navigate(`/dashboard/tickets?user=${selectedUser?.username}`);
-  const navigateUserTransactionScreen = () => navigate(`/dashboard/transactions?user=${selectedUser?.username}`);
+  const navigateUserTransactionScreen = () => navigate(`/dashboard/transaction?user=${selectedUser?.username}`);
 
   const handleCallUser = () => {
     window.open(`tel:${selectedUser?.username}`, '_blank');
   };
 
-  const toggleAddFund = () => {
+  const toggleAddFund = (type) => {
+    setWalletActionType(type);
     setToggleFundUser(!toggleFundUser);
   };
+
+  const toggleDeductFund = (type) => {
+    setWalletActionType(type);
+    setToggleDeductUser(!toggleDeductUser);
+  };
+
   const toggleSendMessage = () => {
     setToggleSendUserMessage(!toggleSendUserMessage);
   };
@@ -192,6 +204,18 @@ export default function UsersManagement() {
           closeModal={toggleAddFund}
           handleRefresh={getUerData}
           onSuccess={toggleAddFund}
+          type={walletActionType}
+        />
+      </BasicModal>
+
+      {/* deduct user modal  */}
+      <BasicModal isOpen={toggleDeductUser} toggleOpen={toggleDeductFund}>
+        <UserOptionsCardDeduct
+          user={selectedUser}
+          closeModal={toggleDeductFund}
+          handleRefresh={getUerData}
+          onSuccess={toggleDeductFund}
+          type={walletActionType}
         />
       </BasicModal>
 
@@ -505,12 +529,23 @@ export default function UsersManagement() {
                   <Tooltip title="Fund user wallet">
                     <IconButton
                       disabled={!selectedUser}
-                      onClick={toggleAddFund}
+                      onClick={() => toggleAddFund('Fund')}
                       color="primary"
                       sx={{ p: '10px' }}
                       aria-label="directions"
                     >
-                      <Iconify icon="typcn:plus-outline" width={40} height={40} />
+                      <Iconify icon="octicon:feed-plus-16" width={40} height={40} />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Deduct User Wallet">
+                    <IconButton
+                      disabled={!selectedUser}
+                      onClick={() => toggleDeductFund('Deduct')}
+                      color="primary"
+                      sx={{ p: '10px' }}
+                      aria-label="directions"
+                    >
+                      <Iconify icon="zondicons:minus-solid" width={40} height={40} />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Direct call">

@@ -23,6 +23,18 @@ export const filterTransaction = async (filter) => {
   return api.get(`/api/v1/admin/transaction?${filter}`, {}, config);
 };
 
+export const getTransaction = async (transactionId) => {
+  const { token } = store.getState().auth;
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
+  return datashopAPI.get(`/api/v1/admin/transaction/${transactionId}`, {}, config);
+};
+
 export const getUsernameTransaction = async (userId) => {
   const { token } = store.getState().auth;
 
@@ -44,5 +56,7 @@ export const refundUser = async (transactionRef) => {
     },
   };
 
-  return api.post('/api/v1/order/refund', { transactionRef }, config);
+  return api.post('/api/v1/order/refund', { transaction_ref: transactionRef }, config);
 };
+
+
