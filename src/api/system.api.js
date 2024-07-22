@@ -91,6 +91,20 @@ export const createTicketMessage = async (ticketId, payload) => {
   return datashopAPI.post(`/system/admin/ticket/${ticketId}/messages`, payload, config);
 };
 
+
+
+export const getUsersCount = async () => {
+  const { token } = store.getState().auth;
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data',
+    },
+  };
+  return datashopAPI.get('/system/users-count', {}, config);
+};
+
 export const getPendingDeductions = async (ticketId, payload) => {
   const { token } = store.getState().auth;
 

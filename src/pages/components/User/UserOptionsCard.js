@@ -151,23 +151,9 @@ export default function UserOptionsCard({ user, balance, handleRefresh, type, cl
               <Typography mt={1} variant="p" color={'GrayText'}>
                 To {type} please fill in the form below and Submit
               </Typography>
-              {type === 'Deduct' && (
-                <Alert sx={{ mt: '20px' }} severity="info">
-                  Note: Wallet Deduction will be submitted to admin.
-                </Alert>
-              )}
 
-              <Stack
-                direction={'row'}
-                spacing={1}
-                sx={{ my: '20px', bgcolor: 'whitesmoke', padding: 1, borderRadius: 1 }}
-              >
-                <Typography color={'black'}>User Balance:</Typography>
-                <Typography color={Number(user?.balance) - Number(amount) < 1 ? 'red' : 'green'}>
-                  {Number(user?.balance) - Number(amount)}
-                </Typography>
-              </Stack>
               <TextField
+                sx={{ mt: 4 }}
                 id="outlined-required"
                 autoComplete="off"
                 label="Amount"
@@ -224,7 +210,7 @@ export default function UserOptionsCard({ user, balance, handleRefresh, type, cl
             </Stack>
 
             <Stack direction={'row'} sx={{ mt: '20px' }}>
-              <Button fullWidth variant={'outlined'} onClick={onSuccess} sx={{ mr: '10px' }} >
+              <Button fullWidth variant={'outlined'} onClick={onSuccess} sx={{ mr: '10px' }}>
                 Cancel
               </Button>
               <Button variant={'contained'} onClick={handleUserWallet} disabled={!valid} fullWidth>

@@ -24,6 +24,8 @@ import {
 
 import moment from 'moment-timezone';
 import { useNavigate } from 'react-router-dom';
+import { SET_USERS_COUNT } from '../store/constants/users';
+import { formatNumber } from '../utils/formatNumber';
 import { USER_UPDATE } from '../store/constants/auth';
 import { getUserInfo } from '../api/auth.api';
 
@@ -38,7 +40,7 @@ import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // import USERLIST from '../_mock/user';
 import { WithdrawalRequest } from './components/dashboard/WithdrawalRequest';
 import { GET_DEDUCTIONS } from '../store/constants/system';
-import { getPendingDeductions } from '../api/system.api';
+import { getPendingDeductions, getUsersCount } from '../api/system.api';
 
 // ----------------------------------------------------------------------
 
@@ -89,7 +91,7 @@ export default function User() {
 
   const navigate = useNavigate();
 
-  const { history, currentBalance, owner } = useSelector((state) => state.users);
+  const { history, currentBalance, owner, count } = useSelector((state) => state.users);
   const { deductions } = useSelector((state) => state.system);
 
   const { user } = useSelector((state) => state.auth);
@@ -144,6 +146,17 @@ export default function User() {
     setUserClickId(id);
     toggleModal();
   };
+
+  const handleGetUsersCount = useCallback(async () => {
+    const request = await getUsersCount();
+    if (request.ok) {
+      dispatch({ type: SET_USERS_COUNT, payload: request.data?.count || 0 });
+    }
+  }, []);
+
+  useEffect(() => {
+    handleGetUsersCount();
+  }, [handleGetUsersCount]);
 
   React.useEffect(() => {
     dispatch(getStaffAccountData());
@@ -245,31 +258,35 @@ export default function User() {
               />
             </Grid>
             {user?.isSuperUser && (
-              <Grid lg={3} sm={6} xs={12}>
-                <WithdrawalRequest
-                  icon={'icon-park-solid:file-withdrawal'}
-                  sx={{ height: '100%' }}
-                  label={'Deductions'}
-                  value={deductions.length}
-                  bottom={
-                    <Stack direction={'row'} spacing={1} alignItems={'center'} justifyContent={'space-between'}>
-                      <Typography variant="body2" color={'yellowgreen'}>
-                        {deductions.filter((item) => item.status === 'PENDING').length} | PENDING
-                      </Typography>
-                      <Button size={'small'} variant="outlined" onClick={() => navigate('/dashboard/deductions')}>
-                        View
-                      </Button>
-                    </Stack>
-                  }
-                />
-              </Grid>
+              <>
+                <Grid lg={3} sm={6} xs={12}>
+                  <WithdrawalRequest
+                    icon={'icon-park-solid:file-withdrawal'}
+                    sx={{ height: '100%' }}
+                    label={'Deductions'}
+                    value={deductions.length}
+                    bottom={
+                      <Stack direction={'row'} spacing={1} alignItems={'center'} justifyContent={'space-between'}>
+                        <Typography variant="body2" color={'yellowgreen'}>
+                          {deductions.filter((item) => item.status === 'PENDING').length} | PENDING
+                        </Typography>
+                        <Button size={'small'} variant="outlined" onClick={() => navigate('/dashboard/deductions')}>
+                          View
+                        </Button>
+                      </Stack>
+                    }
+                  />
+                </Grid>
+                <Grid lg={3} sm={6} xs={12}>
+                  <WithdrawalRequest
+                    sx={{ height: '100%' }}
+                    label={'Number of users'}
+                    icon={'solar:users-group-rounded-bold'}
+                    value={formatNumber(count)}
+                  />
+                </Grid>
+              </>
             )}
-            {/* <Grid lg={3} sm={6} xs={12}>
-              <WithdrawalRequest sx={{ height: '100%' }} value={75.5} />
-            </Grid>
-            <Grid lg={3} sm={6} xs={12}>
-              <WithdrawalRequest sx={{ height: '100%' }} value="$15k" />
-            </Grid> */}
           </Grid>
           <Card style={{ paddingBlock: '10px' }}>
             <UserListToolbar

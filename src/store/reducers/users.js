@@ -11,6 +11,7 @@ const initialState = {
   history: [],
   isLoading: false,
   added: false,
+  count: 0,
 };
 
 export default function usersReducer(state = initialState, action) {
@@ -24,6 +25,11 @@ export default function usersReducer(state = initialState, action) {
       return {
         ...state,
         isLoading: false,
+      };
+    case actionType.SET_USERS_COUNT:
+      return {
+        ...state,
+        count: action.payload,
       };
     case actionType.GET_STAFF_ACCOUNT:
       return {
