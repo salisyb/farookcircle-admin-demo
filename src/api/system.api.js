@@ -90,3 +90,28 @@ export const createTicketMessage = async (ticketId, payload) => {
   };
   return datashopAPI.post(`/system/admin/ticket/${ticketId}/messages`, payload, config);
 };
+
+export const getPendingDeductions = async (ticketId, payload) => {
+  const { token } = store.getState().auth;
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  };
+  return datashopAPI.get('/wallet/wallet-deduction', payload, config);
+};
+
+
+export const respondPendingWithdrawal = async (id, payload) => {
+  const { token } = store.getState().auth;
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  };
+  return datashopAPI.put(`/wallet/wallet-deduction/${id}`, payload, config);
+};

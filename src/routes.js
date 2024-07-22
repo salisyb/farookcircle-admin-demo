@@ -17,6 +17,7 @@ import Transactions from './pages/Transactions';
 import Funding from './pages/Funding';
 import Transaction from './pages/Transaction';
 import TransactionData from './pages/TransactionData';
+import DeductionManagement from './pages/DeductionsManagement';
 
 // ----------------------------------------------------------------------
 
@@ -31,6 +32,7 @@ export default function Router() {
         { path: 'app', element: isAuthenticated ? <User /> : <Navigate to="/login" /> },
         { path: 'funding', element: isAuthenticated ? <Funding /> : <Navigate to="/login" /> },
         { path: 'users', element: isAuthenticated ? <UsersManagement /> : <Navigate to="/login" /> },
+        { path: 'deductions', element: isAuthenticated ? <DeductionManagement /> : <Navigate to="/login" /> },
         { path: 'tickets', element: isAuthenticated ? <TicketList /> : <Navigate to="/login" /> },
         { path: 'tickets/message', element: isAuthenticated ? <TicketMessages /> : <Navigate to="/login" /> },
         { path: 'transaction', element: isAuthenticated ? <Transaction /> : <Navigate to="/login" /> },

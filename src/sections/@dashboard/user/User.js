@@ -92,8 +92,6 @@ export default function User() {
   const { history, currentBalance, owner } = useSelector((state) => state.users);
   const { deductions } = useSelector((state) => state.system);
 
-  const { user } = useSelector((state) => state.auth);
-
   const [filterTransaction, setFilterTransaction] = React.useState(history);
 
   const [page, setPage] = React.useState(0);
@@ -244,26 +242,24 @@ export default function User() {
                 value={`₦ ${new Intl.NumberFormat().format(Number(currentBalance)) || '0.00'}`}
               />
             </Grid>
-            {user?.isSuperUser && (
-              <Grid lg={3} sm={6} xs={12}>
-                <WithdrawalRequest
-                  icon={'icon-park-solid:file-withdrawal'}
-                  sx={{ height: '100%' }}
-                  label={'Deductions'}
-                  value={deductions.length}
-                  bottom={
-                    <Stack direction={'row'} spacing={1} alignItems={'center'} justifyContent={'space-between'}>
-                      <Typography variant="body2" color={'yellowgreen'}>
-                        {deductions.filter((item) => item.status === 'PENDING').length} | PENDING
-                      </Typography>
-                      <Button size={'small'} variant="outlined" onClick={() => navigate('/dashboard/deductions')}>
-                        View
-                      </Button>
-                    </Stack>
-                  }
-                />
-              </Grid>
-            )}
+            <Grid lg={3} sm={6} xs={12}>
+              <WithdrawalRequest
+                icon={'icon-park-solid:file-withdrawal'}
+                sx={{ height: '100%' }}
+                label={'Deductions'}
+                value={deductions.length}
+                bottom={
+                  <Stack direction={'row'} spacing={1} alignItems={'center'} justifyContent={'space-between'}>
+                    <Typography variant="body2" color={'yellowgreen'}>
+                      {deductions.filter((item) => item.status === 'PENDING').length} | PENDING
+                    </Typography>
+                    <Button size={'small'} variant="outlined" onClick={() => navigate('/dashboard/deductions')}>
+                      View
+                    </Button>
+                  </Stack>
+                }
+              />
+            </Grid>
             {/* <Grid lg={3} sm={6} xs={12}>
               <WithdrawalRequest sx={{ height: '100%' }} value={75.5} />
             </Grid>

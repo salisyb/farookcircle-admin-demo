@@ -445,14 +445,24 @@ export default function UsersManagement() {
                       </Stack>
                     </Stack>
                     {/* user balance  */}
-                    <Stack flex={1} alignItems={'center'}>
+                    <Stack flex={1} alignItems={'center'} spacing={1}>
                       <Stack
                         // bgcolor={'#3366FF'}
-                        sx={{ px: '20px', py: '10px', border: '1px solid #3366FF', borderRadius: '10px' }}
+                        sx={{ px: '20px', py: '10px', border: '1px solid #3366FF', borderRadius: '10px', width: '100%' }}
                       >
                         <Typography variant="body2">Balance:</Typography>
                         <Typography variant="h4" fontWeight={'bold'} color={'#40C450'}>
                           ₦{selectedUser?.balance}
+                        </Typography>
+                      </Stack>
+
+                      <Stack
+                        // bgcolor={'#3366FF'}
+                        sx={{ px: '20px', py: '5px', border: '1px solid #3366FF', borderRadius: '10px', width: '100%' }}
+                      >
+                        <Typography variant="body2">Locked Balance:</Typography>
+                        <Typography variant="h6" fontWeight={'bold'} color={'red'}>
+                          ₦{selectedUser?.locked_balance}
                         </Typography>
                       </Stack>
                     </Stack>

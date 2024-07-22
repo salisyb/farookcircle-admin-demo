@@ -1,2 +1,3 @@
 export const GET_TICKETS = 'GET_TICKETS';
 export const TOGGLE_LOADING = 'TOGGLE_LOADING';
+export const GET_DEDUCTIONS = 'GET_DEDUCTIONS';

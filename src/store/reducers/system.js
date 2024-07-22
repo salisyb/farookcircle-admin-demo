@@ -3,6 +3,7 @@ import * as systemActions from '../constants/system';
 
 const initialState = {
   tickets: [],
+  deductions: [],
   isLoading: false,
 };
 
@@ -17,7 +18,12 @@ export default function systemReducer(state = initialState, action) {
       return {
         ...state,
         tickets: action.payload,
-        isLoading: false
+        isLoading: false,
+      };
+    case systemActions.GET_DEDUCTIONS:
+      return {
+        ...state,
+        deductions: action.payload,
       };
     default:
       return state;

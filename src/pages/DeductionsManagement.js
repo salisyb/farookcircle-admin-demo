@@ -1,7 +1,8 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable arrow-body-style */
 /* eslint-disable no-else-return */
 /* eslint-disable camelcase */
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { filter } from 'lodash';
 // material
@@ -20,10 +21,22 @@ import {
   Box,
   CircularProgress,
   Grid,
+  IconButton,
+  Select,
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+  TextField,
 } from '@mui/material';
 
 import moment from 'moment-timezone';
+import { toast } from 'react-toastify';
+import { LoadingButton } from '@mui/lab';
 import { useNavigate } from 'react-router-dom';
+import Iconify from '../components/Iconify';
+import TransitionsModal from '../components/Modal';
 import { USER_UPDATE } from '../store/constants/auth';
 import { getUserInfo } from '../api/auth.api';
 
@@ -38,18 +51,19 @@ import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
 // import USERLIST from '../_mock/user';
 import { WithdrawalRequest } from './components/dashboard/WithdrawalRequest';
 import { GET_DEDUCTIONS } from '../store/constants/system';
-import { getPendingDeductions } from '../api/system.api';
+import { getPendingDeductions, respondPendingWithdrawal } from '../api/system.api';
+import UserListDeduct from '../sections/@dashboard/user/UserListDeduct';
 
 // ----------------------------------------------------------------------
 
 // mock avatar url
 
 const TABLE_HEAD = [
-  { id: 'owner', label: 'Owner', alignRight: false },
+  { id: 'submit_by', label: 'Submit By', alignRight: false },
   { id: 'amount', label: 'Amount', alignRight: false },
-  { id: 'description', label: 'Description', alignRight: false },
-  { id: 'date', label: 'Date', alignRight: false },
-  { id: 'direction', label: 'Direction', alignRight: false },
+  { id: 'reason', label: 'Reason', alignRight: false },
+  { id: 'date_created', label: 'Date', alignRight: false },
+  { id: 'status', label: 'Status', alignRight: false },
   { id: '' },
 ];
 
@@ -84,17 +98,16 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function User() {
+export default function DeductionManagement() {
   const dispatch = useDispatch();
 
   const navigate = useNavigate();
 
-  const { history, currentBalance, owner } = useSelector((state) => state.users);
-  const { deductions } = useSelector((state) => state.system);
-
   const { user } = useSelector((state) => state.auth);
 
-  const [filterTransaction, setFilterTransaction] = React.useState(history);
+  const { deductions } = useSelector((state) => state.system);
+
+  const [filterTransaction, setFilterTransaction] = React.useState(deductions);
 
   const [page, setPage] = React.useState(0);
 
@@ -152,7 +165,7 @@ export default function User() {
   }, []);
 
   const handleFilterTransactions = async (queryFilter) => {
-    const filteredTransactions = history.filter((transaction) => {
+    const filteredTransactions = deductions.filter((transaction) => {
       return Object.entries(queryFilter).every(([key, value]) => {
         if (transaction[key] === undefined || transaction[key] === null) {
           console.log('returning here');
@@ -178,7 +191,7 @@ export default function User() {
 
   const handleApplyFilter = (filter) => {
     if (Object.keys(filter).length < 1) {
-      setFilterTransaction(history);
+      setFilterTransaction(deductions);
       return;
     }
     handleFilterTransactions(filter);
@@ -196,12 +209,50 @@ export default function User() {
     const request = await getPendingDeductions();
     if (request.ok) {
       dispatch({ type: GET_DEDUCTIONS, payload: request.data });
+      setFilterTransaction(request.data);
     }
   }, [dispatch]);
 
   useEffect(() => {
     handleGetPendingDeduction();
   }, [handleGetPendingDeduction]);
+
+  const [deductStatus, setDeductStatus] = useState('PENDING');
+
+  const handleChange = (event) => {
+    setDeductStatus(event.target.value);
+  };
+
+  const [reason, setReason] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleRespondPendingWithdrawal = async () => {
+    setLoading(true);
+    if (deductStatus === 'DECLINE' && !reason) {
+      toast.error('Please specify a reason for decline');
+      setLoading(false);
+      return;
+    }
+
+    const request = await respondPendingWithdrawal(userClickId?.id, { reason, status: deductStatus });
+    if (request.ok) {
+      await handleGetPendingDeduction();
+      toast.success('Request completed successfully');
+      setLoading(false);
+      toggleModal();
+      return;
+    }
+
+    toast.error(request.data?.message ? request.data?.message : 'Unable to complete your request');
+    toggleModal();
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (!user?.isSuperUser) {
+      navigate('/dashboard');
+    }
+  }, [navigate, user]);
 
   return (
     <Page title="Staff">
@@ -226,57 +277,15 @@ export default function User() {
         <Container>
           <Stack px={'10px'} mb={2}>
             <Typography variant="h4" gutterBottom>
-              Account Information
+              Deduction Requests
             </Typography>
-            <Stack direction={'row'} spacing={1}>
-              <Typography>Account Name:</Typography>
-              <Typography sx={{ fontWeight: '700' }} color={'#3366FF'}>
-                {owner}
-              </Typography>
-            </Stack>
           </Stack>
-          <Grid container spacing={1} my={4}>
-            <Grid lg={3} sm={6} xs={12}>
-              <WithdrawalRequest
-                sx={{ height: '100%' }}
-                label={'Balance'}
-                icon={'solar:wallet-bold'}
-                value={`₦ ${new Intl.NumberFormat().format(Number(currentBalance)) || '0.00'}`}
-              />
-            </Grid>
-            {user?.isSuperUser && (
-              <Grid lg={3} sm={6} xs={12}>
-                <WithdrawalRequest
-                  icon={'icon-park-solid:file-withdrawal'}
-                  sx={{ height: '100%' }}
-                  label={'Deductions'}
-                  value={deductions.length}
-                  bottom={
-                    <Stack direction={'row'} spacing={1} alignItems={'center'} justifyContent={'space-between'}>
-                      <Typography variant="body2" color={'yellowgreen'}>
-                        {deductions.filter((item) => item.status === 'PENDING').length} | PENDING
-                      </Typography>
-                      <Button size={'small'} variant="outlined" onClick={() => navigate('/dashboard/deductions')}>
-                        View
-                      </Button>
-                    </Stack>
-                  }
-                />
-              </Grid>
-            )}
-            {/* <Grid lg={3} sm={6} xs={12}>
-              <WithdrawalRequest sx={{ height: '100%' }} value={75.5} />
-            </Grid>
-            <Grid lg={3} sm={6} xs={12}>
-              <WithdrawalRequest sx={{ height: '100%' }} value="$15k" />
-            </Grid> */}
-          </Grid>
+
           <Card style={{ paddingBlock: '10px' }}>
-            <UserListToolbar
+            <UserListDeduct
               numSelected={selected.length}
               filterName={filterName}
               onFilterName={handleFilterByName}
-              // totalAmount={Number(currentBalance)}
               onApplyFilter={handleApplyFilter}
             />
 
@@ -293,14 +302,14 @@ export default function User() {
                   />
                   <TableBody>
                     {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                      const { _id, owner, amount, direction, description, createdAt } = row;
+                      const { id, submit_by, amount, status, reason, date_created } = row;
 
                       return (
                         <TableRow
                           hover
-                          key={_id}
+                          key={id}
                           tabIndex={-1}
-                          onClick={() => handleClickUser(_id)}
+                          onClick={() => handleClickUser(row)}
                           sx={{ cursor: 'pointer' }}
                         >
                           <TableCell padding="checkbox">
@@ -310,16 +319,19 @@ export default function User() {
                             <Stack direction="row" alignItems="center" spacing={2}>
                               {/* <Avatar alt={agent} src={avatar} /> */}
                               <Typography variant="subtitle2" noWrap>
-                                {`${owner}`}
+                                {`${submit_by}`}
                               </Typography>
                             </Stack>
                           </TableCell>
                           <TableCell align="left">{amount}</TableCell>
-                          <TableCell align="left">{description}</TableCell>
-                          <TableCell align="left">{moment(createdAt).format('MMM Do YYYY, h:mm:ss')}</TableCell>
+                          <TableCell align="left">{reason}</TableCell>
+                          <TableCell align="left">{moment(date_created).format('MMM Do YYYY, h:mm:ss')}</TableCell>
                           <TableCell align="left">
-                            <Label variant="ghost" color={direction !== 'DEBIT' ? 'success' : 'error'}>
-                              {direction}
+                            <Label
+                              variant="ghost"
+                              color={status === 'GRANTED' ? 'success' : status === 'PENDING' ? 'info' : 'error'}
+                            >
+                              {status}
                             </Label>
                           </TableCell>
 
@@ -359,6 +371,129 @@ export default function User() {
           </Card>
         </Container>
       </>
+      <TransitionsModal open={userClicked} toggleModal={toggleModal}>
+        <Stack>
+          <Stack direction="row" justifyContent={'space-between'} alignItems={'center'}>
+            <Typography variant="h4">Deduction Details</Typography>
+            <IconButton onClick={toggleModal}>
+              <Iconify icon={'carbon:close-filled'} />
+            </IconButton>
+          </Stack>
+          <Grid spacing={1} container>
+            <Grid item xs={12} sm={6}>
+              <Stack>
+                <Typography variant="subtitle2" color={'gray'}>
+                  ID
+                </Typography>
+                <Typography variant="subtitle1">{userClickId?.id}</Typography>
+              </Stack>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Stack>
+                <Typography variant="subtitle2" color={'gray'}>
+                  Ticket ID
+                </Typography>
+                <Typography variant="subtitle1">{userClickId?.ticket}</Typography>
+              </Stack>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Stack>
+                <Typography variant="subtitle2" color={'gray'}>
+                  Request Status
+                </Typography>
+                <Typography variant="subtitle1">{userClickId?.status}</Typography>
+              </Stack>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Stack>
+                <Typography variant="subtitle2" color={'gray'}>
+                  Reason
+                </Typography>
+                <Typography variant="subtitle1">{userClickId?.reason}</Typography>
+              </Stack>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Stack>
+                <Typography variant="subtitle2" color={'gray'}>
+                  Amount
+                </Typography>
+                <Typography variant="subtitle1">{userClickId?.amount}</Typography>
+              </Stack>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Stack>
+                <Typography variant="subtitle2" color={'gray'}>
+                  Date
+                </Typography>
+                <Typography variant="subtitle1">
+                  {moment(userClickId?.date_created).format('MMMM Do YYYY, h:mm a')}
+                </Typography>
+              </Stack>
+            </Grid>
+          </Grid>
+          <Grid
+            item
+            xs={12}
+            sm={12}
+            mt={2}
+            onClick={() => navigate(`/dashboard/tickets/message?ticketId=${userClickId?.ticket_id}`)}
+          >
+            <Stack direction={'row'}>
+              <Button>View Ticket</Button>
+            </Stack>
+          </Grid>
+          {userClickId?.status === 'PENDING' ? (
+            <>
+              <Grid item xs={12} sm={12}>
+                <Stack mt={4}>
+                  <FormControl>
+                    <FormLabel id="demo-row-radio-buttons-group-label">Status</FormLabel>
+                    <RadioGroup
+                      row
+                      value={deductStatus}
+                      onChange={handleChange}
+                      aria-labelledby="demo-row-radio-buttons-group-label"
+                      name="row-radio-buttons-group"
+                    >
+                      <FormControlLabel value="PENDING" control={<Radio />} label="PENDING" />
+                      <FormControlLabel value="GRANTED" control={<Radio />} label="GRANTED" />
+                      <FormControlLabel value="DECLINE" control={<Radio />} label="DECLINE" />
+                    </RadioGroup>
+                  </FormControl>
+                  {deductStatus === 'DECLINE' && (
+                    <Stack>
+                      <TextField value={reason} onChange={(e) => setReason(e.target.value)} label={'Reason'} />
+                    </Stack>
+                  )}
+                  {deductStatus !== 'PENDING' && (
+                    <Stack direction={'row'} mt={2}>
+                      <LoadingButton
+                        loading={loading}
+                        disabled={loading}
+                        variant="contained"
+                        onClick={handleRespondPendingWithdrawal}
+                      >
+                        Submit
+                      </LoadingButton>
+                    </Stack>
+                  )}
+                </Stack>
+              </Grid>
+            </>
+          ) : (
+            <Grid item xs={12} sm={6}>
+              <Stack>
+                <Typography variant="subtitle2" color={'gray'}>
+                  Date
+                </Typography>
+                <Typography variant="subtitle1">
+                  {moment(userClickId?.date_created).format('MMMM Do YYYY, h:mm a')}
+                </Typography>
+              </Stack>
+            </Grid>
+          )}
+        </Stack>
+      </TransitionsModal>
     </Page>
   );
 }

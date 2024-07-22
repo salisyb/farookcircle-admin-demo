@@ -30,7 +30,7 @@ const SearchStyle = styled(OutlinedInput)(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-UserListToolbar.propTypes = {
+UserListDeduct.propTypes = {
   numSelected: PropTypes.number,
   filterName: PropTypes.string,
   onFilterName: PropTypes.func,
@@ -39,7 +39,7 @@ UserListToolbar.propTypes = {
   onApplyFilter: PropTypes.func,
 };
 
-export default function UserListToolbar({
+export default function UserListDeduct({
   numSelected,
   onApplyFilter,
 }) {
@@ -54,7 +54,7 @@ export default function UserListToolbar({
     >
       <Stack direction={'column'}>
         <Typography variant="h4" sx={{ fontWeight: '200' }}>
-          Transactions
+          Deductions
         </Typography>
       </Stack>
 
