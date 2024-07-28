@@ -63,11 +63,14 @@ export default function UsersManagement() {
 
   const [createTicketLoading, setCreateTicketLoading] = useState(false);
 
+  const [disableAction, setDisableAction] = useState(false);
+
   const [modifyUser, setModifyUser] = React.useState(false);
 
   const { user } = useSelector((state) => state.auth);
 
-  const handleSearch = async () => {
+  const handleSearch = async (e) => {
+    e?.preventDefault();
     setSelectedUser(null);
     setTickets([]);
     setLoading(true);
@@ -77,6 +80,8 @@ export default function UsersManagement() {
     if (response.ok && response.data?.success) {
       setSelectedUser(response.data?.data);
       setLoading(false);
+      setDisableAction(false);
+
       await handleGetTicket();
       return;
     }
@@ -86,6 +91,7 @@ export default function UsersManagement() {
   };
 
   const getUerData = async () => {
+    setDisableAction(true);
     const response = await validateUser(search);
 
     if (response.ok && response.data?.success) {
@@ -193,6 +199,21 @@ export default function UsersManagement() {
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     setSelectedFile(file);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      // Add your search logic here
+      console.log('Search initiated for:', search);
+      // For example, you can set loading to true and initiate a search request
+      setLoading(true);
+      // Simulate a search request
+      setTimeout(() => {
+        setLoading(false);
+        // Handle the search result here
+        console.log('Search completed');
+      }, 2000);
+    }
   };
 
   return (
@@ -448,7 +469,13 @@ export default function UsersManagement() {
                     <Stack flex={1} alignItems={'center'} spacing={1}>
                       <Stack
                         // bgcolor={'#3366FF'}
-                        sx={{ px: '20px', py: '10px', border: '1px solid #3366FF', borderRadius: '10px', width: '100%' }}
+                        sx={{
+                          px: '20px',
+                          py: '10px',
+                          border: '1px solid #3366FF',
+                          borderRadius: '10px',
+                          width: '100%',
+                        }}
                       >
                         <Typography variant="body2">Balance:</Typography>
                         <Typography variant="h4" fontWeight={'bold'} color={'#40C450'}>
@@ -492,6 +519,7 @@ export default function UsersManagement() {
                             placeholder="Enter user number"
                             inputProps={{ 'aria-label': 'search for user' }}
                             disabled={loading}
+                            onKeyPress={handleKeyPress}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                           />
@@ -538,7 +566,7 @@ export default function UsersManagement() {
                 <Stack direction="row" spacing={2} mt={'10px'}>
                   <Tooltip title="Fund user wallet">
                     <IconButton
-                      disabled={!selectedUser}
+                      disabled={!selectedUser || disableAction}
                       onClick={() => toggleAddFund('Fund')}
                       color="primary"
                       sx={{ p: '10px' }}
@@ -549,7 +577,7 @@ export default function UsersManagement() {
                   </Tooltip>
                   <Tooltip title="Deduct User Wallet">
                     <IconButton
-                      disabled={!selectedUser}
+                      disabled={!selectedUser || disableAction}
                       onClick={() => toggleDeductFund('Deduct')}
                       color="primary"
                       sx={{ p: '10px' }}
@@ -560,7 +588,7 @@ export default function UsersManagement() {
                   </Tooltip>
                   <Tooltip title="Direct call">
                     <IconButton
-                      disabled={!selectedUser}
+                      disabled={!selectedUser || disableAction}
                       onClick={handleCallUser}
                       color="primary"
                       sx={{ p: '10px' }}
@@ -571,7 +599,7 @@ export default function UsersManagement() {
                   </Tooltip>
                   <Tooltip title="Send direct message to user">
                     <IconButton
-                      disabled={!selectedUser}
+                      disabled={!selectedUser || disableAction}
                       onClick={toggleSendMessage}
                       color="primary"
                       sx={{ p: '10px' }}
@@ -583,7 +611,7 @@ export default function UsersManagement() {
 
                   <Tooltip title="Send Email to user">
                     <IconButton
-                      disabled={!selectedUser}
+                      disabled={!selectedUser || disableAction}
                       onClick={toggleSendEmail}
                       color="primary"
                       sx={{ p: '10px' }}

@@ -1,26 +1,29 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   Box,
   Button,
-  Checkbox,
   CircularProgress,
-  FormControlLabel,
+  FormControl,
+  IconButton,
+  InputAdornment,
+  InputLabel,
+  MenuItem,
+  Select,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
 
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-
-import { agentDeductUser, agentFundUserWallet } from '../../../api/users.api';
+import { useSelector } from 'react-redux';
+import Iconify from '../../../components/Iconify';
+import { agentDeductUser, checkDeductionDetail } from '../../../api/users.api';
 
 export default function UserOptionsCardDeduct({ user, handleRefresh, type, onSuccess }) {
   // state
+
+  const loggedUser = useSelector((state) => state.auth.user);
 
   const [amount, setAmount] = React.useState('');
   const [loading, setLoading] = React.useState(false);
@@ -31,8 +34,11 @@ export default function UserOptionsCardDeduct({ user, handleRefresh, type, onSuc
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [time, setTime] = React.useState('');
-  const [pin, setPin] = React.useState('');
-  const [fakePin, setFakingPin] = React.useState('');
+  const [other, setOther] = React.useState('');
+
+  const [details, setDetails] = useState(null);
+
+  const [reference, setReference] = useState('');
 
   const handleUserWallet = async () => {
     setShow(true);
@@ -42,6 +48,7 @@ export default function UserOptionsCardDeduct({ user, handleRefresh, type, onSuc
       agent: user?.username,
       amount,
       reason: time,
+      transaction_ref: reference,
     });
     // agent, from, amount, time,
     if (response.ok) {
@@ -75,117 +82,177 @@ export default function UserOptionsCardDeduct({ user, handleRefresh, type, onSuc
     setValid(false);
   }, [amount, time]);
 
+  const handleGetTransactionDetail = useCallback(async () => {
+    setIsLoading(true);
+    const request = await checkDeductionDetail({ reference, username: user?.username });
+    if (request.ok) {
+      setDetails(request.data);
+    }
+    setIsLoading(false);
+  }, [reference, user?.username]);
+
   return (
-    <>
-      <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
-        {isLoading ? (
-          <Box
-            sx={{
-              width: '100%',
-              height: '100%',
-              position: 'absolute',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'white',
-              zIndex: 7,
-            }}
-          >
+    <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+      {show && (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'white',
+            zIndex: 7,
+          }}
+        >
+          {loading ? (
             <CircularProgress />
-            <Typography>Please wait...</Typography>
-          </Box>
-        ) : (
+          ) : (
+            <>
+              <Typography textAlign={'center'}>{statusMessage}</Typography>
+
+              <Button variant="outlined" onClick={handleToggleShow}>
+                Ok
+              </Button>
+            </>
+          )}
+        </Box>
+      )}
+
+      <Stack>
+        <Typography variant={'h4'}>{type} Wallet</Typography>
+        <Typography mt={1} variant="p" color={'GrayText'}>
+          To {type} please fill in the form below and Submit
+        </Typography>
+        {type === 'Deduct' && (
+          <Alert sx={{ mt: '20px' }} severity="info">
+            Note: Wallet Deduction will be submitted to admin for approval.
+          </Alert>
+        )}
+
+        <Stack direction={'row'} spacing={1} sx={{ my: '20px', bgcolor: 'whitesmoke', padding: 1, borderRadius: 1 }}>
+          <Typography color={'black'}>User Balance:</Typography>
+          <Typography color={Number(user?.balance) - Number(amount) < 1 ? 'red' : 'green'}>
+            {Number(user?.balance) - Number(amount)}
+          </Typography>
+        </Stack>
+
+        <FormControl fullWidth sx={{ mt: '20px' }}>
+          <InputLabel id="demo-simple-select-label">Reason</InputLabel>
+          <Select
+            value={time}
+            onChange={(e) => {
+              setTime(e.target.value);
+              setReference('');
+              setDetails(null);
+
+              if (e.target.value === 'WRONG_OWNER' && details?.history?.amount) {
+                setAmount(Number(details?.history?.amount));
+              } else {
+                setAmount('');
+              }
+            }}
+            labelId="demo-simple-select-label"
+            id="demo-simple-select"
+            label="Reason"
+          >
+            <MenuItem value={'OVERFUNDING'}>Overfunding</MenuItem>
+            <MenuItem value={'WRONG_OWNER'}>Wrong Owner</MenuItem>
+            {loggedUser?.isSuperUser && <MenuItem value={'OTHER'}>Other</MenuItem>}
+          </Select>
+        </FormControl>
+
+        {time && (
           <>
-            {show && (
-              <Box
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  position: 'absolute',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'white',
-                  zIndex: 7,
-                }}
-              >
-                {loading ? (
-                  <CircularProgress />
-                ) : (
-                  <>
-                    <Typography textAlign={'center'}>{statusMessage}</Typography>
-
-                    <Button variant="outlined" onClick={handleToggleShow}>
-                      Ok
-                    </Button>
-                  </>
-                )}
-              </Box>
-            )}
-
-            <Stack>
-              <Typography variant={'h4'}>{type} Wallet</Typography>
-              <Typography mt={1} variant="p" color={'GrayText'}>
-                To {type} please fill in the form below and Submit
-              </Typography>
-              {type === 'Deduct' && (
-                <Alert sx={{ mt: '20px' }} severity="info">
-                  Note: Wallet Deduction will be submitted to admin for approval.
-                </Alert>
-              )}
-
-              <Stack
-                direction={'row'}
-                spacing={1}
-                sx={{ my: '20px', bgcolor: 'whitesmoke', padding: 1, borderRadius: 1 }}
-              >
-                <Typography color={'black'}>User Balance:</Typography>
-                <Typography color={Number(user?.balance) - Number(amount) < 1 ? 'red' : 'green'}>
-                  {Number(user?.balance) - Number(amount)}
-                </Typography>
-              </Stack>
+            {time !== 'OTHER' && (
               <TextField
+                sx={{ mt: '20px' }}
                 id="outlined-required"
                 autoComplete="off"
-                label="Amount"
-                value={amount}
-                onChange={(event) => {
-                  if (Number(event.target.value) || event.target.value === '') {
-                    setAmount(event.target.value);
-                  }
+                label="Reference"
+                value={reference}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="start">
+                      {isLoading ? (
+                        <CircularProgress size={'20px'} />
+                      ) : (
+                        <IconButton onClick={handleGetTransactionDetail}>
+                          <Iconify icon={'icons8:chevron-right-round'} />
+                        </IconButton>
+                      )}
+                    </InputAdornment>
+                  ),
                 }}
-                helperText={Number(amount) > Number(user.balance) && 'Amount to deduct cannot be greater than user balance'}
+                onChange={(event) => setReference(event.target.value)}
+                helperText={'Please provide reference for the transaction'}
               />
+            )}
+
+            {time === 'OTHER' && (
               <TextField
-                sx={{ my: '20px' }}
+                sx={{ mt: '20px' }}
                 label="Reason"
                 inputProps={{
                   autoComplete: 'new-password',
                 }}
-                value={time}
+                value={other}
                 autoComplete="chrome-off"
-                onChange={(event) => setTime(event.target.value)}
+                onChange={(event) => setOther(event.target.value)}
               />
-            </Stack>
+            )}
 
-            <Stack direction={'row'} sx={{ mt: '20px' }}>
-              <Button fullWidth variant={'outlined'} onClick={onSuccess} sx={{ mr: '10px' }}>
-                Cancel
-              </Button>
-              <Button
-                variant={'contained'}
-                onClick={handleUserWallet}
-                // disabled={!valid || amount > user.balance}
-                fullWidth
-              >
-                Submit
-              </Button>
-            </Stack>
+            {time !== 'WRONG_OWNER' && (
+              <>
+                <TextField
+                  sx={{ mt: '20px' }}
+                  id="outlined-required"
+                  autoComplete="off"
+                  disabled={time === 'OVERFUNDING' && !details?.history}
+                  label="Amount"
+                  value={amount}
+                  onChange={(event) => {
+                    if (Number(event.target.value) || event.target.value === '') {
+                      setAmount(event.target.value);
+                    }
+                  }}
+                  helperText={
+                    Number(amount) > Number(user.balance) && 'Amount to deduct cannot be greater than user balance'
+                  }
+                />
+                {details && !details?.history && (
+                  <Typography variant="caption" color={'red'}>
+                    Unable to resolve the transaction using this reference
+                  </Typography>
+                )}
+              </>
+            )}
+
+            {time === 'WRONG_OWNER' && details?.history && (
+              <Alert sx={{ mt: '20px' }} severity="error">
+                Note: transaction amount {details?.history?.amount} will be deducted from user wallet
+              </Alert>
+            )}
+
+            {time === 'OVERFUNDING' && details?.history && (
+              <Alert sx={{ mt: '20px' }} severity="error">
+                Note: You can only deduct less than the transaction amount {details?.history?.amount}
+              </Alert>
+            )}
           </>
         )}
-      </Box>
-    </>
+      </Stack>
+
+      <Stack direction={'row'} sx={{ mt: '20px' }}>
+        <Button fullWidth variant={'outlined'} onClick={onSuccess} sx={{ mr: '10px' }}>
+          Cancel
+        </Button>
+        <Button variant={'contained'} onClick={handleUserWallet} disabled={!!(time !== 'OTHER' && !details)} fullWidth>
+          Submit
+        </Button>
+      </Stack>
+    </Box>
   );
 }

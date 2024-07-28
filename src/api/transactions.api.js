@@ -58,5 +58,3 @@ export const refundUser = async (transactionRef) => {
 
   return api.post('/api/v1/order/refund', { transaction_ref: transactionRef }, config);
 };
-
-

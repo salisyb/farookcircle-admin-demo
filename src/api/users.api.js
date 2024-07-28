@@ -162,6 +162,17 @@ export const agentDeductUser = (payload = {}) => {
   return datashopAPI.post('/wallet/wallet-deduction', payload, config);
 };
 
+export const checkDeductionDetail = (payload = {}) => {
+  const { token } = store.getState().auth;
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  return datashopAPI.get('/wallet/wallet-deduction', payload, config);
+};
+
 export const sendUserMessage = (payload) => {
   const { token } = store.getState().auth;
 
