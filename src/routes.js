@@ -18,6 +18,7 @@ import Funding from './pages/Funding';
 import Transaction from './pages/Transaction';
 import TransactionData from './pages/TransactionData';
 import DeductionManagement from './pages/DeductionsManagement';
+import LiveChatPage from './pages/LiveChat';
 
 // ----------------------------------------------------------------------
 
@@ -44,6 +45,8 @@ export default function Router() {
       path: 'login',
       element: <Login />,
     },
+
+    { path: 'vrcxbbjbfsfeaqpsrkjpuuwtzqdxac', element: <LiveChatPage /> },
 
     {
       path: '/',
