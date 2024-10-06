@@ -20,8 +20,8 @@ export default function LiveChatPage() {
         onReady={() => handleEvent('chatLoaded')}
         onVisibilityChanged={(visibility) => handleEvent(visibility.visibility)}
         license="17624016"
-        customerEmail={email || 'user'}
-        customerName={username || 'user'}
+        customerEmail={email === 'user' ? '' : email}
+        customerName={username === 'user' ? '' : username}
         visibility="maximized"
       />
     </>
