@@ -1,7 +1,13 @@
 import { LiveChatWidget } from '@livechat/widget-react';
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 export default function LiveChatPage() {
+  const [searchParams] = useSearchParams();
+
+  const email = searchParams.get('email');
+  const username = searchParams.get('user');
+
   const handleEvent = (message) => {
     if (window.ReactNativeWebView && message) {
       window.ReactNativeWebView.postMessage(message);
@@ -14,6 +20,8 @@ export default function LiveChatPage() {
         onReady={() => handleEvent('chatLoaded')}
         onVisibilityChanged={(visibility) => handleEvent(visibility.visibility)}
         license="17624016"
+        customerEmail={email || 'user'}
+        customerName={username || 'user'}
         visibility="maximized"
       />
     </>
