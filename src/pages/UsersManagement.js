@@ -755,7 +755,7 @@ export default function UsersManagement() {
                   </Stack>
                 )}
 
-                {!bankLoading && !selectedUser && !banks.length && (
+                {!bankLoading && selectedUser && !banks.length && (
                   <Stack sx={{ justifyContent: 'center', alignItems: 'center', height: '200px' }}>
                     <Typography variant="body2" sx={{ mt: '10px' }}>
                       No bank account found
