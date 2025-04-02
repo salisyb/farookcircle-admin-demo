@@ -3,18 +3,26 @@
 import React, { useState } from 'react';
 // material
 import {
+  Alert,
   Avatar,
   Box,
   Button,
   Card,
+  CardContent,
   CircularProgress,
+  Collapse,
   Container,
   Divider,
   FormControl,
+  FormHelperText,
   Grid,
   IconButton,
+  InputAdornment,
   InputBase,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Stack,
   TextField,
   Tooltip,
@@ -32,7 +40,7 @@ import { LoadingButton } from '@mui/lab';
 import { createTicket, getTicketByUser } from '../api/system.api';
 import Iconify from '../components/Iconify';
 import Page from '../components/Page';
-import { validateUser } from '../api/users.api';
+import { createUserBankAccount, getUserBankAccount, validateUser } from '../api/users.api';
 import BasicModal from './components/Modal';
 import UserOptionsCard from './components/User/UserOptionsCard';
 import UserOptionsCardMessage from './components/User/UserOptionsCardMessage';
@@ -40,6 +48,12 @@ import UserOptionsCardEmail from './components/User/UserOptionsCardEmail';
 import UserOptionsCardInfo from './components/User/UserOptionsCardInfo';
 import ModalC from './components/CModal';
 import UserOptionsCardDeduct from './components/User/UserOptionsCardDeduct';
+
+const BANKS = [
+  { id: 'moniepoint', name: 'Moniepoint Micro Finance' },
+  { id: '9psb', name: '9PSB' },
+  { id: 'palmpay', name: 'PALMPAY' },
+];
 
 export default function UsersManagement() {
   const navigate = useNavigate();
@@ -55,11 +69,16 @@ export default function UsersManagement() {
   const [toggleSendUserEmail, setToggleSendUserEmail] = React.useState(false);
   const [firstTime, setFirstTime] = useState(true);
   const [ticketLoading, setTicketLoading] = useState(false);
+  const [bankLoading, setBankLoading] = useState(false);
+
+  const [banks, setBanks] = useState([]);
 
   const [walletActionType, setWalletActionType] = useState('');
 
   const [selectedFile, setSelectedFile] = React.useState(null);
   const [toggleCreateTicket, setToggleCreateTicket] = useState(false);
+
+  const [toggleCreateBank, setToggleCreateBank] = useState(false);
 
   const [createTicketLoading, setCreateTicketLoading] = useState(false);
 
@@ -73,6 +92,7 @@ export default function UsersManagement() {
     e?.preventDefault();
     setSelectedUser(null);
     setTickets([]);
+    setBanks([]);
     setLoading(true);
 
     const response = await validateUser(search);
@@ -81,8 +101,8 @@ export default function UsersManagement() {
       setSelectedUser(response.data?.data);
       setLoading(false);
       setDisableAction(false);
+      await Promise.all([handleGetTicket(), handleGetBankAccounts()]);
 
-      await handleGetTicket();
       return;
     }
 
@@ -107,6 +127,17 @@ export default function UsersManagement() {
     }
     setTicketLoading(false);
   };
+
+  const handleGetBankAccounts = async () => {
+    setBankLoading(true);
+    const response = await getUserBankAccount(search);
+    if (response.ok) {
+      setBanks(response.data);
+    }
+    setBankLoading(false);
+  };
+
+  console.log('banks', banks);
 
   const handleViewTicket = (ticketId) => navigate(`/dashboard/tickets/message?ticketId=${ticketId}`);
   const navigateUserTicketScreen = () => navigate(`/dashboard/tickets?user=${selectedUser?.username}`);
@@ -213,6 +244,69 @@ export default function UsersManagement() {
         // Handle the search result here
         console.log('Search completed');
       }, 2000);
+    }
+  };
+
+  const [formData, setFormData] = useState({
+    bankId: '',
+    bvn: '',
+  });
+
+  const [errors, setErrors] = useState({});
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear error when field is edited
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: '',
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.bankId) {
+      newErrors.bankId = 'Please select a bank';
+    }
+
+    if (formData.bankId === 'moniepoint' && !formData.bvn) {
+      newErrors.bvn = 'BVN is required for Moniepoint accounts';
+    } else if (formData.bankId === 'moniepoint' && formData.bvn && !/^\d{11}$/.test(formData.bvn)) {
+      newErrors.bvn = 'BVN must be 11 digits';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmitBank = async (e) => {
+    e.preventDefault();
+
+    if (validateForm()) {
+      // If Moniepoint is not selected, remove BVN from submission
+      const submitData = formData.bankId !== 'moniepoint' ? { ...formData, bvn: undefined } : formData;
+      setBankLoading(true);
+
+      const response = await createUserBankAccount({ ...submitData, username: selectedUser?.username });
+      if (response.ok) {
+        toast.success('Bank account created successfully');
+        setBanks([...banks, ...response.data]);
+        setBankLoading(false);
+        setToggleCreateBank(false);
+      } else {
+        const error = response.data?.message;
+        toast.error(error);
+        setBankLoading(false);
+      }
     }
   };
 
@@ -345,11 +439,89 @@ export default function UsersManagement() {
         </form>
       </ModalC>
 
-      <Container sx={{ flexShrink: 0 }}>
-        <Card sx={{ flexGrow: 1, width: '100%', padding: '20px', minHeight: '80vh' }}>
+      {/* create user new tickets  */}
+      <ModalC
+        isOpen={toggleCreateBank}
+        setOpen={() => {
+          setToggleCreateBank(!toggleCreateBank);
+        }}
+      >
+        <>
+          <Stack spacing={3}>
+            <Stack alignItems={'center'} justifyContent={'space-between'} direction={'row'}>
+              <Typography variant="h6">Create Bank Account</Typography>
+
+              <IconButton onClick={() => setToggleCreateBank(!toggleCreateBank)}>
+                <Iconify icon={'eva:close-outline'} width={'20px'} height={'20px'} />
+              </IconButton>
+            </Stack>
+
+            <Collapse in={showSuccess}>
+              <Alert severity="success" onClose={() => setShowSuccess(false)} sx={{ mb: 2 }}>
+                Bank account created successfully!
+              </Alert>
+            </Collapse>
+
+            <FormControl fullWidth error={!!errors.bankId}>
+              <InputLabel id="bank-select-label">Select Bank</InputLabel>
+              <Select
+                labelId="bank-select-label"
+                id="bank-select"
+                name="bankId"
+                value={formData.bankId}
+                label="Select Bank"
+                onChange={handleChange}
+              >
+                {BANKS.map((bank) => (
+                  <MenuItem key={bank.id} value={bank.id}>
+                    {bank.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.bankId && <FormHelperText>{errors.bankId}</FormHelperText>}
+            </FormControl>
+
+            {formData.bankId === 'moniepoint' && (
+              <TextField
+                fullWidth
+                label="BVN"
+                name="bvn"
+                placeholder="Enter 11-digit BVN"
+                value={formData.bvn}
+                onChange={handleChange}
+                error={!!errors.bvn}
+                helperText={errors.bvn || 'BVN is required for Moniepoint'}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Iconify icon="mdi:id-card" width={20} height={20} />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            )}
+
+            <Box sx={{ pt: 1 }}>
+              <LoadingButton
+                fullWidth
+                disabled={bankLoading}
+                loading={bankLoading}
+                onClick={handleSubmitBank}
+                variant="contained"
+                size="large"
+              >
+                Create Bank Account
+              </LoadingButton>
+            </Box>
+          </Stack>
+        </>
+      </ModalC>
+
+      <Container>
+        <Card sx={{ display: 'flex', width: '100%', padding: '20px', minHeight: '80vh', }}>
           {/* user details on the left and ticket list on the right  */}
           <Stack sx={{ flex: 1, height: '100%' }} direction={{ xs: 'column', md: 'row' }} spacing={2}>
-            <Stack sx={{ flex: 2, padding: '10px', height: 'calc(80vh - 20px)' }}>
+            <Stack sx={{ flex: 2, padding: '10px', height: 'calc(80vh - 20px)', overflowY: 'scroll', scrollbarWidth: 'none' }}>
               {/* search for user  */}
               <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
                 {!firstTime && (
@@ -556,6 +728,142 @@ export default function UsersManagement() {
                     )}
                   </Box>
                 )}
+
+                <Divider sx={{ mt: '10px' }} />
+
+                {/* user banks  */}
+                <Stack direction="row" justifyContent={'space-between'} spacing={2} mt={'20px'} alignItems={'center'}>
+                  <Typography variant="h6">Bank Accounts</Typography>
+                  <Button
+                    startIcon={<Iconify icon="octicon:feed-plus-16" width={10} height={10} />}
+                    variant="contained"
+                    disabled={!selectedUser}
+                    onClick={() => {
+                      setToggleCreateBank(!toggleCreateBank);
+                    }}
+                  >
+                    Create Account
+                  </Button>
+                </Stack>
+
+                {bankLoading && !banks.length && (
+                  <Stack sx={{ justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+                    <CircularProgress />
+                    <Typography variant="body2" sx={{ mt: '10px' }}>
+                      Loading bank accounts...
+                    </Typography>
+                  </Stack>
+                )}
+
+                {!bankLoading && !banks.length && (
+                  <Stack sx={{ justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+                    <Typography variant="body2" sx={{ mt: '10px' }}>
+                      No bank account found
+                    </Typography>
+                  </Stack>
+                )}
+
+                <Grid container spacing={2} mt={'10px'}>
+                  {/* Bank Account Card  */}
+                  {banks.map((bank, index) => (
+                    <Grid item xs={12} sm={6} key={index}>
+                      <Card
+                        sx={{
+                          borderRadius: '16px',
+                          boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+                          background: 'white',
+                          overflow: 'hidden',
+                          position: 'relative',
+                          border: '1px solid rgba(0,0,0,0.06)',
+                        }}
+                      >
+                        <CardContent sx={{ p: 2.5 }}>
+                          <Typography
+                            variant="subtitle1"
+                            component="div"
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: '0.95rem',
+                              letterSpacing: '-0.01em',
+                              color: 'rgba(0,0,0,0.87)',
+                              mb: 2,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
+                          >
+                            {bank?.bank_name}
+                          </Typography>
+
+                          <Divider
+                            sx={{
+                              my: 1.5,
+                              backgroundColor: 'rgba(0,0,0,0.06)',
+                              height: '1px',
+                            }}
+                          />
+
+                          <Box sx={{ mt: 1.5, mb: 1.5 }}>
+                            <Typography
+                              variant="caption"
+                              component="div"
+                              sx={{
+                                color: 'rgba(0,0,0,0.6)',
+                                fontSize: '0.7rem',
+                                fontWeight: 500,
+                                letterSpacing: '0.02em',
+                                mb: 0.5,
+                              }}
+                            >
+                              ACCOUNT NUMBER
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              component="div"
+                              sx={{
+                                fontFamily:
+                                  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                                letterSpacing: '0.02em',
+                                color: 'rgba(0,0,0,0.87)',
+                                fontSize: '0.9rem',
+                              }}
+                            >
+                              {bank.account_number}
+                            </Typography>
+                          </Box>
+
+                          <Box sx={{ mt: 1.5 }}>
+                            <Typography
+                              variant="caption"
+                              component="div"
+                              sx={{
+                                color: 'rgba(0,0,0,0.6)',
+                                fontSize: '0.7rem',
+                                fontWeight: 500,
+                                letterSpacing: '0.02em',
+                                mb: 0.5,
+                              }}
+                            >
+                              ACCOUNT NAME
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              component="div"
+                              sx={{
+                                fontFamily:
+                                  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                                color: 'rgba(0,0,0,0.87)',
+                                fontSize: '0.9rem',
+                              }}
+                            >
+                              {bank.account_name}
+                            </Typography>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
                 <Divider sx={{ mt: '10px' }} />
 
                 {/* user actions  */}
@@ -684,7 +992,7 @@ export default function UsersManagement() {
               </Stack>
 
               {/* ticket list  */}
-              <Stack direction="column" sx={{ overflow: 'scroll', height: 'calc(80vh - 40px)' }}>
+              <Stack direction="column" sx={{ overflow: 'scroll', height: 'calc(80vh - 40px)', scrollbarWidth: 'none' }}>
                 {selectedUser && !ticketLoading && !tickets.length && (
                   <Typography variant="body2" sx={{ mt: '10px', textAlign: 'center' }}>
                     No ticket found

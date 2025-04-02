@@ -35,6 +35,32 @@ export const updateUserInfo = async (data) => {
   return datashopAPI.post('/api/v1/admin/user', data, config);
 };
 
+export const getUserBankAccount = async (username) => {
+  const { token } = store.getState().auth;
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  return datashopAPI.get('/api/v1/admin/user/bank', {username}, config);
+};
+
+
+export const createUserBankAccount = async (data) => {
+  const { token } = store.getState().auth;
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  return datashopAPI.post('/api/v1/admin/user/bank', data, config);
+};
+
+
+
+
 export const updateUserPassword = async (data) => {
   const { token } = store.getState().auth;
 
