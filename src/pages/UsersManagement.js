@@ -603,6 +603,13 @@ export default function UsersManagement() {
                   >
                     {/* user details  */}
                     <Stack spacing={0} flex={2}>
+                     {/* Label and value */}
+                     <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                        <Typography variant="body2">User ID</Typography>
+                        <Typography variant="body1" fontWeight={'bold'}>
+                          {selectedUser?.id ?? ""}
+                        </Typography>
+                      </Stack>
                       {/* Label and value */}
                       <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                         <Typography variant="body2">First Name</Typography>
