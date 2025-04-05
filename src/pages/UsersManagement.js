@@ -98,11 +98,12 @@ export default function UsersManagement() {
     const response = await validateUser(search);
 
     if (response.ok && response.data?.success) {
-      setSelectedUser(response.data?.data);
+      const user = response.data?.data;
+
+      setSelectedUser(user);
       setLoading(false);
       setDisableAction(false);
-      await Promise.all([handleGetTicket(), handleGetBankAccounts()]);
-
+      await Promise.all([handleGetTicket(user?.username), handleGetBankAccounts(user?.username)]);
       return;
     }
 
@@ -119,18 +120,18 @@ export default function UsersManagement() {
     }
   };
 
-  const handleGetTicket = async () => {
+  const handleGetTicket = async (username) => {
     setTicketLoading(true);
-    const response = await getTicketByUser(search);
+    const response = await getTicketByUser(username);
     if (response.ok) {
       setTickets(response.data?.filter((ticket) => ticket.is_closed === false));
     }
     setTicketLoading(false);
   };
 
-  const handleGetBankAccounts = async () => {
+  const handleGetBankAccounts = async (username) => {
     setBankLoading(true);
-    const response = await getUserBankAccount(search);
+    const response = await getUserBankAccount(username);
     if (response.ok) {
       setBanks(response.data);
     }
