@@ -337,6 +337,7 @@ export default function UsersManagement() {
         toast.success('Bank account created successfully');
         setBanks([...banks, ...response.data]);
         setBankLoading(false);
+
         setToggleCreateBank(false);
       } else {
         const error = response.data?.message;
@@ -546,7 +547,7 @@ export default function UsersManagement() {
                       placeholder="Enter 11-digit NIN"
                       value={formData.nin}
                       onChange={handleChange}
-                      type='number'
+                      type="number"
                       error={!!errors.nin}
                       helperText={errors.nin || 'NIN is required for Moniepoint'}
                       InputProps={{
@@ -584,7 +585,7 @@ export default function UsersManagement() {
                       label="Account number"
                       name="accountNumber"
                       placeholder="Your 10-digit Account Number"
-                      type='number'
+                      type="number"
                       value={formData.accountNumber}
                       onChange={handleChange}
                       error={!!errors.accountNumber}
@@ -592,7 +593,7 @@ export default function UsersManagement() {
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
-                            <Iconify icon="mdi:bank-outline"  width={20} height={20} />
+                            <Iconify icon="mdi:bank-outline" width={20} height={20} />
                           </InputAdornment>
                         ),
                       }}
@@ -602,7 +603,7 @@ export default function UsersManagement() {
                       label="BVN"
                       name="bvn"
                       placeholder="Enter 11-digit BVN"
-                      type='number'
+                      type="number"
                       value={formData.bvn}
                       onChange={handleChange}
                       error={!!errors.bvn}
@@ -874,6 +875,14 @@ export default function UsersManagement() {
                     disabled={!selectedUser}
                     onClick={() => {
                       setToggleCreateBank(!toggleCreateBank);
+                      setFormData({
+                        bankId: '',
+                        identity: 'BVN',
+                        bankCode: '',
+                        accountNumber: '',
+                        bvn: '',
+                        nin: '',
+                      });
                     }}
                   >
                     Create Account
