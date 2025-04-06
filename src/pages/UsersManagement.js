@@ -40,7 +40,7 @@ import { LoadingButton } from '@mui/lab';
 import { createTicket, getTicketByUser } from '../api/system.api';
 import Iconify from '../components/Iconify';
 import Page from '../components/Page';
-import { createUserBankAccount, getUserBankAccount, validateUser } from '../api/users.api';
+import { createUserBankAccount, getBankList, getUserBankAccount, validateUser } from '../api/users.api';
 import BasicModal from './components/Modal';
 import UserOptionsCard from './components/User/UserOptionsCard';
 import UserOptionsCardMessage from './components/User/UserOptionsCardMessage';
@@ -72,6 +72,7 @@ export default function UsersManagement() {
   const [bankLoading, setBankLoading] = useState(false);
 
   const [banks, setBanks] = useState([]);
+  const [bankList, setBankList] = useState([]);
 
   const [walletActionType, setWalletActionType] = useState('');
 
@@ -103,7 +104,13 @@ export default function UsersManagement() {
       setSelectedUser(user);
       setLoading(false);
       setDisableAction(false);
+
+      if (bankList.length === 0) {
+        handleGetBankList();
+      }
+
       await Promise.all([handleGetTicket(user?.username), handleGetBankAccounts(user?.username)]);
+
       return;
     }
 
@@ -138,7 +145,12 @@ export default function UsersManagement() {
     setBankLoading(false);
   };
 
-  console.log('banks', banks);
+  const handleGetBankList = async () => {
+    const response = await getBankList();
+    if (response.ok) {
+      setBankList(response.data);
+    }
+  };
 
   const handleViewTicket = (ticketId) => navigate(`/dashboard/tickets/message?ticketId=${ticketId}`);
   const navigateUserTicketScreen = () => navigate(`/dashboard/tickets?user=${selectedUser?.username}`);
@@ -250,7 +262,11 @@ export default function UsersManagement() {
 
   const [formData, setFormData] = useState({
     bankId: '',
+    identity: 'BVN',
+    bankCode: '',
+    accountNumber: '',
     bvn: '',
+    nin: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -279,10 +295,30 @@ export default function UsersManagement() {
       newErrors.bankId = 'Please select a bank';
     }
 
-    if (formData.bankId === 'moniepoint' && !formData.bvn) {
+    if (formData.bankId === 'moniepoint' && formData.identity === 'BVN' && !formData.bvn) {
       newErrors.bvn = 'BVN is required for Moniepoint accounts';
-    } else if (formData.bankId === 'moniepoint' && formData.bvn && !/^\d{11}$/.test(formData.bvn)) {
+    } else if (
+      formData.bankId === 'moniepoint' &&
+      formData.identity === 'BVN' &&
+      formData.bvn &&
+      !/^\d{11}$/.test(formData.bvn)
+    ) {
       newErrors.bvn = 'BVN must be 11 digits';
+    } else if (formData.bankId === 'moniepoint' && formData.identity === 'BVN' && !formData.bankCode) {
+      newErrors.bvn = 'Please select a bank';
+    } else if (formData.bankId === 'moniepoint' && formData.identity === 'BVN' && !formData.accountNumber) {
+      newErrors.bvn = 'Please provider your account number';
+    }
+
+    if (formData.bankId === 'moniepoint' && formData.identity === 'NIN' && !formData.nin) {
+      newErrors.bvn = 'NIN is required for Moniepoint accounts';
+    } else if (
+      formData.bankId === 'moniepoint' &&
+      formData.identity === 'NIN' &&
+      formData.nin &&
+      !/^\d{11}$/.test(formData.nin)
+    ) {
+      newErrors.bvn = 'NIN must be 11 digits';
     }
 
     setErrors(newErrors);
@@ -293,10 +329,9 @@ export default function UsersManagement() {
     e.preventDefault();
 
     if (validateForm()) {
-      // If Moniepoint is not selected, remove BVN from submission
-      const submitData = formData.bankId !== 'moniepoint' ? { ...formData, bvn: undefined } : formData;
+      // If Moniepoint is not selected, remove BVN and NIN from submission
+      const submitData = formData.bankId !== 'moniepoint' ? { ...formData, bvn: undefined, nin: undefined } : formData;
       setBankLoading(true);
-
       const response = await createUserBankAccount({ ...submitData, username: selectedUser?.username });
       if (response.ok) {
         toast.success('Bank account created successfully');
@@ -483,23 +518,106 @@ export default function UsersManagement() {
             </FormControl>
 
             {formData.bankId === 'moniepoint' && (
-              <TextField
-                fullWidth
-                label="BVN"
-                name="bvn"
-                placeholder="Enter 11-digit BVN"
-                value={formData.bvn}
-                onChange={handleChange}
-                error={!!errors.bvn}
-                helperText={errors.bvn || 'BVN is required for Moniepoint'}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Iconify icon="mdi:id-card" width={20} height={20} />
-                    </InputAdornment>
-                  ),
-                }}
-              />
+              <>
+                <FormControl fullWidth error={!!errors.identity}>
+                  <InputLabel id="identity-select-label">Select Identity</InputLabel>
+                  <Select
+                    labelId="identity-select-label"
+                    id="identity-select"
+                    name="identity"
+                    value={formData.identity}
+                    label="Select Identity"
+                    onChange={handleChange}
+                  >
+                    {['BVN', 'NIN'].map((identity) => (
+                      <MenuItem key={identity} value={identity}>
+                        {identity}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.identity && <FormHelperText>{errors.identity}</FormHelperText>}
+                </FormControl>
+                {formData.identity === 'NIN' && (
+                  <>
+                    <TextField
+                      fullWidth
+                      label="NIN"
+                      name="nin"
+                      placeholder="Enter 11-digit NIN"
+                      value={formData.nin}
+                      onChange={handleChange}
+                      type='number'
+                      error={!!errors.nin}
+                      helperText={errors.nin || 'NIN is required for Moniepoint'}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Iconify icon="mdi:id-card" width={20} height={20} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </>
+                )}
+                {formData.identity === 'BVN' && (
+                  <>
+                    <FormControl fullWidth error={!!errors.bankCode}>
+                      <InputLabel id="identity-bank-select-label">Select Bank</InputLabel>
+                      <Select
+                        labelId="identity-bank-select-label"
+                        id="identity-bank-select"
+                        name="bankCode"
+                        value={formData.bankCode}
+                        label="Select Bank"
+                        onChange={handleChange}
+                      >
+                        {bankList.map((bank) => (
+                          <MenuItem key={bank.code} value={bank.code}>
+                            {bank.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      {errors.bankCode && <FormHelperText>{errors.bankCode}</FormHelperText>}
+                    </FormControl>
+                    <TextField
+                      fullWidth
+                      label="Account number"
+                      name="accountNumber"
+                      placeholder="Your 10-digit Account Number"
+                      type='number'
+                      value={formData.accountNumber}
+                      onChange={handleChange}
+                      error={!!errors.accountNumber}
+                      helperText={errors.accountNumber || 'Account number is required for Moniepoint'}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Iconify icon="mdi:bank-outline"  width={20} height={20} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                    <TextField
+                      fullWidth
+                      label="BVN"
+                      name="bvn"
+                      placeholder="Enter 11-digit BVN"
+                      type='number'
+                      value={formData.bvn}
+                      onChange={handleChange}
+                      error={!!errors.bvn}
+                      helperText={errors.bvn || 'BVN is required for Moniepoint'}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Iconify icon="mdi:id-card" width={20} height={20} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </>
+                )}
+              </>
             )}
 
             <Box sx={{ pt: 1 }}>
@@ -519,10 +637,18 @@ export default function UsersManagement() {
       </ModalC>
 
       <Container>
-        <Card sx={{ display: 'flex', width: '100%', padding: '20px', minHeight: '80vh', }}>
+        <Card sx={{ display: 'flex', width: '100%', padding: '20px', minHeight: '80vh' }}>
           {/* user details on the left and ticket list on the right  */}
           <Stack sx={{ flex: 1, height: '100%' }} direction={{ xs: 'column', md: 'row' }} spacing={2}>
-            <Stack sx={{ flex: 2, padding: '10px', height: 'calc(80vh - 20px)', overflowY: 'scroll', scrollbarWidth: 'none' }}>
+            <Stack
+              sx={{
+                flex: 2,
+                padding: '10px',
+                height: 'calc(80vh - 20px)',
+                overflowY: 'scroll',
+                scrollbarWidth: 'none',
+              }}
+            >
               {/* search for user  */}
               <Stack direction={'row'} justifyContent={'space-between'} alignItems={'center'}>
                 {!firstTime && (
@@ -603,11 +729,11 @@ export default function UsersManagement() {
                   >
                     {/* user details  */}
                     <Stack spacing={0} flex={2}>
-                     {/* Label and value */}
-                     <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+                      {/* Label and value */}
+                      <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
                         <Typography variant="body2">User ID</Typography>
                         <Typography variant="body1" fontWeight={'bold'}>
-                          {selectedUser?.id ?? ""}
+                          {selectedUser?.id ?? ''}
                         </Typography>
                       </Stack>
                       {/* Label and value */}
@@ -1000,7 +1126,10 @@ export default function UsersManagement() {
               </Stack>
 
               {/* ticket list  */}
-              <Stack direction="column" sx={{ overflow: 'scroll', height: 'calc(80vh - 40px)', scrollbarWidth: 'none' }}>
+              <Stack
+                direction="column"
+                sx={{ overflow: 'scroll', height: 'calc(80vh - 40px)', scrollbarWidth: 'none' }}
+              >
                 {selectedUser && !ticketLoading && !tickets.length && (
                   <Typography variant="body2" sx={{ mt: '10px', textAlign: 'center' }}>
                     No ticket found

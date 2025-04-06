@@ -47,6 +47,18 @@ export const getUserBankAccount = async (username) => {
 };
 
 
+export const getBankList = async () => {
+  const { token } = store.getState().auth;
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  return datashopAPI.get('/api/bank-list', {}, config);
+};
+
+
 export const createUserBankAccount = async (data) => {
   const { token } = store.getState().auth;
 
