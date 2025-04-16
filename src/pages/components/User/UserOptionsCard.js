@@ -44,7 +44,7 @@ export default function UserOptionsCard({ user, balance, handleRefresh, type, cl
   const [time, setTime] = React.useState('');
   const [pin, setPin] = React.useState('');
   const [fakePin, setFakingPin] = React.useState('');
-  const [resolution, setResolution] = useState(false);
+  const [resolution, setResolution] = useState(true);
   const [ticketRef, setTicketRef] = useState('');
 
   const handleUserWallet = async () => {
@@ -174,12 +174,12 @@ export default function UserOptionsCard({ user, balance, handleRefresh, type, cl
                 autoComplete="chrome-off"
                 onChange={(event) => setTime(event.target.value)}
               />
-              <FormControlLabel
+              {/* <FormControlLabel
                 required
                 control={<Checkbox />}
                 label="Is Pending"
                 onChange={(event) => setResolution(event.target.checked)}
-              />
+              /> */}
               {resolution && (
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DemoContainer components={['DatePicker']}>
