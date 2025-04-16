@@ -2,13 +2,14 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable camelcase */
 import React, { useState, useCallback, useEffect } from 'react';
-import { Box, Stack, Typography, CircularProgress, Card, Button, Divider, ButtonBase } from '@mui/material';
+import { Box, Stack, Typography, CircularProgress, Card, Button } from '@mui/material';
 
 // import { LocalizationProvider, DateRangePicker } from '@mui/x-date-pickers-pro';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import moment from 'moment-timezone';
 import { toast } from 'react-toastify';
+import Iconify from '../components/Iconify';
 import { getTransaction, refundUser } from '../api/transactions.api';
 import { toWordUpperCase } from '../utils/helper';
 import { ConfirmationAlert } from '../components/ConfirmationAlert';
@@ -85,17 +86,16 @@ const TransactionData = () => {
             <Typography fontSize={'20px'} fontWeight={'bold'}>
               Transaction Details
             </Typography>
-            <Stack direction={'row'} spacing={1}>
-              <Typography
-                onClick={() => navigate(-1)}
-                variant={'body2'}
-                sx={{ cursor: 'pointer', ':hover': { color: '#3366FF' } }}
-              >
-                Transactions
-              </Typography>
-              <Typography color={'gray'}>{'>'}</Typography>
-              <Typography variant={'body2'} color={'#3366FF'}>
-                Transaction Data
+            <Stack
+              onClick={() => navigate(-1)}
+              direction={'row'}
+              alignItems={'center'}
+              spacing={1}
+              sx={{ mb: 3, cursor: 'pointer', color: 'primary' }}
+            >
+              <Iconify icon="eva:arrow-ios-back-fill" width={20} height={20} />
+              <Typography>
+                <strong>Go Back</strong>
               </Typography>
             </Stack>
           </Stack>

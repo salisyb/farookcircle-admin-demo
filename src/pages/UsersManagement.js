@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 /* eslint-disable camelcase */
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 // material
 import {
   Alert,
@@ -32,7 +32,7 @@ import {
 
 import { toast } from 'react-toastify';
 import moment from 'moment-timezone';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useFormik } from 'formik';
 import { useSelector } from 'react-redux';
@@ -57,6 +57,8 @@ const BANKS = [
 
 export default function UsersManagement() {
   const navigate = useNavigate();
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [loading, setLoading] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState(null);
@@ -89,34 +91,51 @@ export default function UsersManagement() {
 
   const { user } = useSelector((state) => state.auth);
 
-  const handleSearch = async (e) => {
-    e?.preventDefault();
-    setSelectedUser(null);
-    setTickets([]);
-    setBanks([]);
-    setLoading(true);
+  const handleSearch = useCallback(
+    async (query = null) => {
+      setSelectedUser(null);
+      setTickets([]);
+      setBanks([]);
+      setLoading(true);
 
-    const response = await validateUser(search);
 
-    if (response.ok && response.data?.success) {
-      const user = response.data?.data;
+      
+      searchParams.set('q', query || search);
+      setSearchParams(searchParams);
 
-      setSelectedUser(user);
-      setLoading(false);
-      setDisableAction(false);
+      const response = await validateUser(query || search);
 
-      if (bankList.length === 0) {
-        handleGetBankList();
+      if (response.ok && response.data?.success) {
+        const user = response.data?.data;
+
+        // add the user.username to the query
+
+        setSelectedUser(user);
+        setLoading(false);
+        setDisableAction(false);
+
+        if (bankList.length === 0) {
+          handleGetBankList();
+        }
+
+        await Promise.all([handleGetTicket(user?.username), handleGetBankAccounts(user?.username)]);
+        return;
       }
 
-      await Promise.all([handleGetTicket(user?.username), handleGetBankAccounts(user?.username)]);
+      toast.error('User not found');
+      setLoading(false);
+    },
+    [bankList.length, search, searchParams, setSearchParams]
+  );
 
-      return;
+  useEffect(() => {
+    const query = searchParams.get('q');
+    if (query && !selectedUser) {
+      setSearch(query);
+      setFirstTime(false);
+      handleSearch(query);
     }
-
-    toast.error('User not found');
-    setLoading(false);
-  };
+  }, [handleSearch, searchParams, selectedUser]);
 
   const getUerData = async () => {
     setDisableAction(true);
@@ -670,6 +689,7 @@ export default function UsersManagement() {
                       disabled={loading}
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
+                      onClick={() => {}}
                     />
                     {!loading && search && (
                       <IconButton
@@ -685,7 +705,7 @@ export default function UsersManagement() {
                     <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
                     <IconButton
                       disabled={loading}
-                      onClick={handleSearch}
+                      onClick={() => handleSearch()}
                       color="primary"
                       sx={{ p: '10px' }}
                       size="20px"

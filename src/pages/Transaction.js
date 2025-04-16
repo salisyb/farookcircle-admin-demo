@@ -418,24 +418,24 @@ const Transaction = () => {
         <Stack minHeight={550}>
           {/* Page header  */}
           <Stack direction={'column'} spacing={'5px'}>
+            <Stack direction={'row'} spacing={1}>
+              <Stack
+                onClick={() => navigate(-1)}
+                direction={'row'}
+                alignItems={'center'}
+                spacing={1}
+                sx={{ mb: 3, cursor: 'pointer', color: 'primary' }}
+              >
+                <Iconify icon="eva:arrow-ios-back-fill" width={20} height={20} />
+                <Typography>
+                  <strong>Go Back</strong>
+                </Typography>
+              </Stack>
+            </Stack>
             <Typography fontSize={'20px'} fontWeight={'bold'}>
               Transactions History
             </Typography>
-            <Stack direction={'row'} spacing={1}>
-              <Typography
-                onClick={() => navigate(-1)}
-                variant={'body2'}
-                sx={{ cursor: 'pointer', ':hover': { color: '#3366FF' } }}
-              >
-                User Management
-              </Typography>
-              <Typography color={'gray'}>{'>'}</Typography>
-              <Typography variant={'body2'} color={'#3366FF'}>
-                User Activity
-              </Typography>
-            </Stack>
           </Stack>
-
           {/* page header end  */}
 
           {/* Filter  */}
@@ -539,16 +539,20 @@ const Transaction = () => {
                             hover
                             key={''}
                             tabIndex={-1}
-                            onClick={() => navigate(`/dashboard/transaction/data?id=${id}`)}
+                            onDoubleClick={() => navigate(`/dashboard/transaction/data?id=${id}`)}
                             sx={{ cursor: 'pointer' }}
                           >
-                            <TableCell padding="checkbox">
-                              {/* <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, id)} /> */}
-                            </TableCell>
+                            <TableCell padding="checkbox" />
                             <TableCell component="th" scope="row" padding="none">
                               <Stack direction="row" alignItems="center" spacing={2}>
                                 {/* <Avatar alt={agent} src={avatar} /> */}
-                                <Typography variant="subtitle2" noWrap>
+                                <Typography
+                                  variant="subtitle2"
+                                  noWrap
+                                  color={'primary'}
+                                  sx={{ cursor: 'pointer' }}
+                                  onClick={() => navigate(`/dashboard/transaction/data?id=${id}`)}
+                                >
                                   {`${name || 'N/A'}`}
                                 </Typography>
                               </Stack>

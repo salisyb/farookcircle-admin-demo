@@ -1,24 +1,29 @@
 /* eslint-disable no-unneeded-ternary */
 /* eslint-disable default-param-last */
+import { getWithExpiry, setWithExpiry } from '../../utils/helper';
 import * as auth from '../constants/auth';
 
-// const userSession = localStorage.getItem('user_session') ? JSON.parse(localStorage.getItem('user_session')) : {};
 
-// const initialState = {
-//   token: userSession.token || null,
-//   isAuthenticated: userSession.token ? true : false,
-//   isLoading: false,
-//   user: userSession.user || null,
-// };
+const TOKEN_EXPIRY = 24 * 60 * 60 * 1000; // 1 day
+
+
+const userSession = getWithExpiry('user_session');
 
 const initialState = {
-  token: null,
-  isAuthenticated: false,
+  token: userSession?.token || null,
+  isAuthenticated: userSession?.token ? true : false,
   isLoading: false,
-  user: null,
+  user: userSession?.user || null,
 };
 
-export default function (state = initialState, action) {
+// const initialState = {
+//   token: null,
+//   isAuthenticated: false,
+//   isLoading: false,
+//   user: null,
+// };
+
+export default function authReducer(state = initialState, action) {
   switch (action.type) {
     case auth.USER_LOADING:
       return {
@@ -26,7 +31,7 @@ export default function (state = initialState, action) {
         isLoading: true,
       };
     case auth.LOGIN_SUCCEED:
-      localStorage.setItem('user_session', JSON.stringify(action.payload));
+      setWithExpiry('user_session', action.payload, TOKEN_EXPIRY);
       return {
         ...state,
         ...action.payload,
