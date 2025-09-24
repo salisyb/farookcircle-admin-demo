@@ -51,7 +51,7 @@ import UserOptionsCardDeduct from './components/User/UserOptionsCardDeduct';
 
 const BANKS = [
   { id: 'moniepoint', name: 'Moniepoint Micro Finance' },
- // { id: '9psb', name: '9PSB' },
+  { id: '9psb', name: '9PSB' },
   { id: 'palmpay', name: 'PALMPAY' },
 ];
 
