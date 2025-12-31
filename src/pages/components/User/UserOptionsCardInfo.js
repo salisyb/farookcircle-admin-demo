@@ -30,6 +30,7 @@ export default function UserOptionsCardInfo({ user, closeModal, onUserUpdate }) 
   const [lastName, setLastName] = useState(user?.last_name);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [newUsername, setNewUsername] = useState(user?.username);
 
   const [resetPassword, setResetPassword] = useState(false);
   const [editInfo, setEditInfo] = useState(false);
@@ -47,11 +48,16 @@ export default function UserOptionsCardInfo({ user, closeModal, onUserUpdate }) 
   const handleSubmit = async () => {
     setIsLoading(true);
     const data = {
+      userId: user?.id,
       username: user?.username,
       email,
       first_name: firstName,
       last_name: lastName,
     };
+
+    if (newUsername !== user?.username) {
+      data.newUsername = newUsername;
+    }
 
     const response = await updateUserInfo(data);
 
@@ -85,6 +91,7 @@ export default function UserOptionsCardInfo({ user, closeModal, onUserUpdate }) 
   const handleResetPassword = async () => {
     setIsLoading(true);
     const data = {
+      userId: user?.id,
       username: user?.username,
       password: newPassword,
     };
@@ -177,7 +184,16 @@ export default function UserOptionsCardInfo({ user, closeModal, onUserUpdate }) 
                 <Typography variant={'h6'}>User Information</Typography>
                 <Typography variant={'caption'}>Modify user information</Typography>
               </Stack>
-              <TextField id="outlined-required" label="Username" value={user?.username} disabled />
+              <TextField
+                id="outlined-required"
+                label="Username"
+                defaultValue={user?.username}
+                value={newUsername}
+                disabled={!editInfo}
+                type="text"
+                required
+                onChange={(event) => setNewUsername(event.target.value)}
+              />
               <TextField
                 id="outlined-required"
                 label="First name"
